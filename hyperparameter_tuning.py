@@ -54,8 +54,8 @@ def main():
     X_val = load_from_file("y_val.pkl")
     
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
-    tuner.search([X_train_gen, X_train_spec], y_train, 
-                 validation_data=([X_val_gen, X_val_spec], y_val),
+    tuner.search([preprocess_data(X_train_gen), preprocess_data(X_train_spec)], y_train, 
+                 validation_data=([preprocess_data(X_val_gen), preprocess_data(X_val_spec)], y_val),
         callbacks=[es]
     )
     )
