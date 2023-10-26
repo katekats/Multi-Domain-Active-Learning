@@ -56,22 +56,7 @@ def main():
     y_train = load_from_file("y_train.pkl")
     X_val = load_from_file("y_val.pkl")
     
-    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
-    tuner.search([preprocess_data(X_train_gen), preprocess_data(X_train_spec)], y_train, 
-                 validation_data=([preprocess_data(X_val_gen), preprocess_data(X_val_spec)], y_val),
-        callbacks=[es]
-    )
-    )
-    # Get the best hyperparameters
-    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-    print(f"""
-    The hyperparameter search is complete. The optimal batch_size
-    layer is {best_hps.get('batch_size')}, the optimal learning rate for the optimizer
-    is {best_hps.get('learning_rate')}, the optimal dropout rate is {best_hps.get('dropout')}, the optimal number of epochs is {best_hps.get('epochs')} the optimal number of units1 is {best_hps.get('units1')} and th.
-    """)
-    
-    with open("best_hyperparameters.pkl", "wb") as f:
-        pkl.dump(best_hps, f)
+   
 
 if __name__ == "__main__":
     main()
