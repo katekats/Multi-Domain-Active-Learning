@@ -9,9 +9,6 @@
 
 # ## Importing libraries
 
-# In[308]:
-
-
 # imports
 import os
 import numpy as np
@@ -22,26 +19,6 @@ import tensorflow as tf
 
 
 # ## Loading the data
-
-# In[528]:
-
-
-# import all the data from the general sentence embeddings
-with open('data/sentence_embeddings/general/unsorted/sentemb/sentemb.p', 'rb') as f:
-    data_general = pkl.load(f)
-
-with open('data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb.p', 'rb') as f:
-    temp_train = pkl.load(f)
-
-with open('data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb.p', 'rb') as f:
-    temp_test = pkl.load(f)
-
-    
-labels_general = np.hstack((temp_train, temp_test))
-
-
-# In[577]:
-
 
 # import all the data from the general sentence embeddings
 with open('data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled.p', 'rb') as f:
@@ -54,15 +31,6 @@ with open('data/sentence_embeddings/general/unsorted/label_domain/label_domain_t
     temp_test = pkl.load(f)
 
 labels_general = np.hstack((temp_train, temp_test))
-
-
-# In[578]:
-
-
-labels_general.shape
-
-
-# In[579]:
 
 
 # import all the specific sentence embedding data - here domain 0 was chosen
@@ -78,59 +46,12 @@ with open('data/sentence_embeddings/specific/label_domain/label_domain_test_sent
 labels_spec = np.hstack((temp_train, temp_test))
 
 
-# In[551]:
-
-
-labels_general.shape
-
-
-# In[533]:
-
-
 pd.set_option('display.max_rows', df.shape[0]+1)
-
-
-# In[565]:
-
-
 
 df = pd.DataFrame(labels_spec.transpose(), columns = ['label','domain','idx_domain'])
 
-
-# In[566]:
-
-
 df = df[df.label!=3]
-
-
-# In[567]:
-
-
-df
-
-
-# In[568]:
-
-
-array = df.to_numpy().astype("int")
-
-
-# In[569]:
-
-
 labels_spec = array.transpose()
-
-
-# In[571]:
-
-
-labels_general.shape
-
-
-# Make sure to load the data of the desired target domain here:
-
-# In[397]:
-
 
 # import all the specific sentence embedding data - here domain 0 was chosen
 with open('data/sentence_embeddings/specific/sentemb/sentemb_0.p', 'rb') as f:
@@ -145,17 +66,7 @@ with open('data/sentence_embeddings/specific/label_domain/label_domain_test_sent
 labels_spec = np.hstack((temp_train, temp_test))
 
 
-# In[586]:
-
-
-labels_spec.shape
-
-
 # ## Necessary functions
-
-# In[582]:
-
-
 # function for sorting two arrays such that both arrays have the same labels
 # returns indeces_sorted which consists of indices and is used for sorting array_to_sort
 def sort_array(array_to_sort, array_ref):
@@ -202,24 +113,10 @@ labels_left = np.delete(labels_general, ind, axis = 1)
 data_general = data_general[ind]
 labels_general = labels_general[:, ind]
 
-
-# In[576]:
-
-
-X_train
-
-
-# In[574]:
-
-
 # split the data 70-10-20 (train-validation-test) - data was already shuffled before
 X_train = data_general[:1400]
 X_val = data_general[1400:1600]
 X_test = data_general[1600:]
-
-
-# In[575]:
-
 
 # save data
 pkl.dump(np.vstack((X_val, X_test)), open("data/sentence_embeddings/general/sorted/val_test/vt_data_1.p", "wb"))
@@ -227,10 +124,3 @@ pkl.dump(np.hstack((labels_general[:,1400:1600],labels_general[:,1600:])), open(
 
 pkl.dump(np.vstack((X_train,data_left)), open("data/sentence_embeddings/general/sorted/train/train_data_1.p", "wb"))
 pkl.dump(np.hstack((labels_general[:,:1400],labels_left)), open("data/sentence_embeddings/general/sorted/train/train_labels_1.p", "wb"))
-
-
-# In[ ]:
-
-
-
-

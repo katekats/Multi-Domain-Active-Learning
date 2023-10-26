@@ -1,0 +1,81 @@
+import numpy as np
+import re
+import tensorflow as tf
+
+INPUT_SIZE_BERT = 768
+INPUT_SIZE_SPEC = 300
+LATENT_SIZE = 300
+BATCH_SIZE = 32
+EPOCHS = 50
+
+def create_classifier_model():
+    """Create classifier model using BERT embeddings."""
+    def create_model():
+    # domain-general and domain-specific model parts
+    inp_gen = tf.keras.Input(shape=(1, INPUT_SIZE))
+    inp_spec = tf.keras.Input(shape=(1, INPUT_SIZE))
+
+    # concatenate domain-general and domain-specific results
+    merged = tf.keras.layers.Concatenate()([inp_gen, inp_spec])
+    merged = tf.keras.layers.Dense(INPUT_SIZE, activation='sigmoid')(merged)
+    merged = tf.keras.layers.Dropout(0.5)(merged)
+    merged = tf.keras.layers.Dense(1, activation='sigmoid')(merged)
+  
+    
+    return tf.keras.Model([input_gen, input_spec], merged)
+
+def preprocess_data(X):
+    """Preprocess data by expanding its dimensions."""
+    return np.expand_dims(X, 1)
+
+def main():
+    classifier_bert_embeddings = create_classifier_model()
+    
+    # load and preprocess data
+    df_train, df_test = load_data('data/bert_embeddings/train/*'), load_data('data/bert_embeddings/test/*')
+    
+    # modify domain values
+    df_train['domain'] = [re.sub('.task.train.pkl$', '', word) for word in df_train['domain']]
+    df_test['domain'] = [re.sub('.task.test.pkl$', '', word) for word in df_test['domain']]
+    
+    dict_domain = dict(zip(sorted(df_train['domain'].unique()), np.arange(16)))
+    X_train, label_domain_train = divide_data(df_train, dict_domain)
+    X_test, label_domain_test = divide_data(df_test, dict_domain)
+    
+    # shuffle data
+    rng = np.random.default_rng(seed=42)
+    X_train, label_domain_train = rng.permutation(X_train), label_domain_train[:, rng.permutation(X_train.shape[0])]
+    X_test, label_domain_test = rng.permutation(X_test), label_domain_test[:, rng.permutation(X_test.shape[0])]
+    
+    # concatenate train and test data
+    labels_general = np.hstack((label_domain_train, label_domain_test))
+    data_general = np.hstack((X_train, X_test))
+    
+    indices_to_remove = []
+for i in range(data_general.shape[0]):
+    if np.isnan(data_general[i]).any():
+        indices_to_remove.append(i)
+        
+indices_to_keep = list(set(np.arange(0,data_general.shape[0])) - set(indices_to_remove))
+
+# %%
+# split the data
+data_general, labels_general, X_spec = data_general[indices_to_keep], labels_general[:, indices_to_keep], X_spec[indices_to_keep]
+    
+X_train_spec, X_val_spec, X_test_spec = X_spec[:4200], X_spec[4200:4800], X_spec[4800:] 
+y_train, y_valid, y_test = labels_general[0, :4200], labels_general[0, 4200:4800], labels_general[0, 4800:]
+X_train_gen, X_val_gen, X_test_gen = data_general[:4200], data_general[4200:4800], data_general[4800:]
+X_train_gen, X_val_gen, X_test_gen = np.vstack(X_train_gen), np.vstack(X_val_gen), np.vstack(X_test_gen)
+    
+    # training the model
+    classifier_bert_embeddings.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=3)
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath="weights/classifier/classifier_without_al/bert_embedding_usage/classifier_domain_0.h5")
+    history = classifier_bert_embeddings.fit([preprocess_data(X_train_gen), preprocess_data(X_train_spec)], y_train, epochs=EPOCHS, validation_data=([preprocess_data(X_val_gen), preprocess_data(X_val_spec)], y_valid), callbacks=[checkpoint, es], batch_size=BATCH_SIZE)
+
+    # evaluating the model
+    score = classifier_bert_embeddings.evaluate([preprocess_data(X_test_gen), preprocess_data(X_test_spec)], y_test, verbose=0) 
+    print(f'Final accuracy score: {score[1]}')
+
+if __name__ == '__main__':
+    main()
