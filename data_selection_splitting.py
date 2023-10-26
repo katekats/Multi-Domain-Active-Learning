@@ -126,13 +126,5 @@ pkl.dump(np.vstack((X_train,data_left)), open("data/sentence_embeddings/general/
 pkl.dump(np.hstack((labels_general[:,:4200],labels_left)), open("data/sentence_embeddings/general/sorted/train/train_labels4_3.p", "wb"))
 
 
-# save data
-pkl.dump(np.vstack((X_val, X_test)), open("data/sentence_embeddings/general/sorted/val_test/vt_data3_10_1.p", "wb"))
-pkl.dump(np.hstack((labels_general[:,14000:16000],labels_general[:,16000:])), open("data/sentence_embeddings/general/sorted/val_test/vt_labels3_10_1.p", "wb"))
-
-pkl.dump(np.vstack((X_train,data_left)), open("data/sentence_embeddings/general/sorted/train/train_data3_10_1.p", "wb"))
-pkl.dump(np.hstack((labels_general[:,:14000],labels_left)), open("data/sentence_embeddings/general/sorted/train/train_labels3_10_1.p", "wb"))
-
-
 
 
