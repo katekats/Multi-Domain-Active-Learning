@@ -70,7 +70,7 @@ def main():
     """)
     
    
-
+    save_hyperparameters_to_file(best_hps)
 if __name__ == "__main__":
     main()
 
