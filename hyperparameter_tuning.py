@@ -48,7 +48,7 @@ def preprocess_data(data):
     return np.expand_dims(np.asarray(data), 1) 
     
 def main():    
-    # Load general sentence embeddings
+    # Load general and specific sentence embeddings
     X_train_gen = load_from_file("X_train_gen.pkl")
     X_val_gen = load_from_file("X_val_gen.pkl")
     X_train_spec = load_from_file("X_train_spec.pkl")
