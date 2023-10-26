@@ -60,6 +60,11 @@ def main():
     y_train = load_from_file("y_train.pkl")
     X_val = load_from_file("y_val.pkl")
     
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+    tuner2.search([np.expand_dims(X_train_gen, 1), np.expand_dims(X_train_spec, 1)], y_train, validation_data=([np.expand_dims(X_val_gen, 1), np.expand_dims(X_val_spec, 1)], y_val), callbacks=[es])
+    best_hps = tuner2.get_best_hyperparameters(num_trials=1)[0]
+
+    
    
 
 if __name__ == "__main__":
