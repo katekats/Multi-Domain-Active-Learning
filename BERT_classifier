@@ -62,9 +62,9 @@ indices_to_keep = list(set(np.arange(0,data_general.shape[0])) - set(indices_to_
 # split the data
 data_general, labels_general, X_spec = data_general[indices_to_keep], labels_general[:, indices_to_keep], X_spec[indices_to_keep]
     
-X_train_spec, X_val_spec, X_test_spec = X_spec[:4200], X_spec[4200:4600], X_spec[4600:] 
-y_train, y_valid, y_test = labels_general[0, :1400], labels_general[0, 1400:1600], labels_general[0, 1600:]
-X_train_gen, X_val_gen, X_test_gen = data_general[:1400], data_general[1400:1600], data_general[1600:]
+X_train_spec, X_val_spec, X_test_spec = X_spec[:4200], X_spec[4200:4800], X_spec[4800:] 
+y_train, y_valid, y_test = labels_general[0, :4200], labels_general[0, 4200:4800], labels_general[0, 4800:]
+X_train_gen, X_val_gen, X_test_gen = data_general[:4200], data_general[4200:4800], data_general[4800:]
 X_train_gen, X_val_gen, X_test_gen = np.vstack(X_train_gen), np.vstack(X_val_gen), np.vstack(X_test_gen)
     
     # training the model
