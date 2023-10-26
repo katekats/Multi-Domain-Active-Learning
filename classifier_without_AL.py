@@ -214,16 +214,6 @@ def main():
     # Load cleaned data
     df_train, df_test = load_cleaned_data()
 
-    # Create and compile the model
-    classifier4 = create_model()
-    compile_model(classifier4)
-
-    # Train the model
-    history = train_model(classifier4, X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec)
-
-    # Evaluate the model
-    score = evaluate_model(classifier4, X_test_gen, X_test_spec, y_test)
-
     # Load unsorted general data
     data_general, labels_general = load_unsorted_general_data()
 
@@ -240,7 +230,17 @@ def main():
     save_to_file(X_val_spec, "X_val_spec.pkl")
     save_to_file(y_train, "y_train_.pkl")
     save_to_file(y_val, "y_val.pkl")
-    # Optionally, train the model again with the new data and evaluate
+
+     hyperparameters = load_hyperparameters_from_file()
+     # Create and compile the model
+    classifier4 = create_model()
+    compile_model(classifier4)
+
+    # Train the model
+    history = train_model(classifier4, X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec)
+
+    # Evaluate the model
+    score = evaluate_model(classifier4, X_test_gen, X_test_spec, y_test)
     history_new = train_model(classifier4, X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec)
     score_new = evaluate_model(classifier4, X_test_gen, X_test_spec, y_test)
 
