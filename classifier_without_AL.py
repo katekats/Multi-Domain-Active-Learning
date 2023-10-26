@@ -195,6 +195,9 @@ def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, in
     X_train_gen, X_val_gen, X_test_gen = data_general[:4200], data_general[4200:4800], data_general[4800:]
     return X_train_gen, X_val_gen, X_test_gen
 
+def save_to_file(data, filename):
+    with open(filename, "wb") as file:
+        pickle.dump(data, file)
 
 def main():
     set_seeds_and_configurations()
@@ -230,7 +233,12 @@ def main():
     df_word_dist = word_distribution(df_train, df_test)
     
     X_train_gen, X_val_gen, X_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total,  index_spec)
-
+    save_to_file(X_train_gen, "X_train_gen.pkl")
+    save_to_file(X_val_gen, "X_val_gen.pkl")
+    save_to_file(X_train_spec, "X_train_spec.pkl")
+    save_to_file(X_val_spec, "X_val_spec.pkl")
+    save_to_file(y_train, "y_train_.pkl")
+    save_to_file(y_val, "y_val.pkl")
     # Optionally, train the model again with the new data and evaluate
     history_new = train_model(classifier4, X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec)
     score_new = evaluate_model(classifier4, X_test_gen, X_test_spec, y_test)
