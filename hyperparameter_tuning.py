@@ -61,7 +61,11 @@ def main():
     )
     # Get the best hyperparameters
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-    
+    print(f"""
+    The hyperparameter search is complete. The optimal batch_size
+    layer is {best_hps.get('batch_size')}, the optimal learning rate for the optimizer
+    is {best_hps.get('learning_rate')}, the optimal dropout rate is {best_hps.get('dropout')}, the optimal number of epochs is {best_hps.get('epochs')} the optimal number of units1 is {best_hps.get('units1')} and th.
+    """)
     # Optionally, save the best hyperparameters to a file for future reference
     with open("best_hyperparameters.pkl", "wb") as f:
         pkl.dump(best_hps, f)
