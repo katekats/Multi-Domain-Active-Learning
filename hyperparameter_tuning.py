@@ -45,7 +45,7 @@ def load_from_file(filename):
     return data
 
 def preprocess_data(data):
-    return np.expand_dims(np.asarray(data), 1) 
+    return np.expand_dims(data, 1) 
 
 def save_hyperparameters_to_file(hyperparameters, filename="best_hyperparameters.pkl"):
     with open(filename, "wb") as file:
@@ -61,9 +61,13 @@ def main():
     X_val = load_from_file("y_val.pkl")
     
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
-    tuner2.search([np.expand_dims(X_train_gen, 1), np.expand_dims(X_train_spec, 1)], y_train, validation_data=([np.expand_dims(X_val_gen, 1), np.expand_dims(X_val_spec, 1)], y_val), callbacks=[es])
+    tuner2.search([[preprocess_data(X_train_gen), preprocess_data(X_train_spec)], y_train, validation_data=([preprocess_data(X_val_gen), preprocess_data(X_val_spec)], y_val), callbacks=[es])
     best_hps = tuner2.get_best_hyperparameters(num_trials=1)[0]
-
+    print(f"""
+    The hyperparameter search is complete. The optimal batch_size
+    layer is {best_hps.get('batch_size')}, the optimal learning rate for the optimizer
+    is {best_hps.get('learning_rate')}, the optimal dropout rate is {best_hps.get('dropout')}, the optimal number of epochs is {best_hps.get('epochs')} the optimal number of units1 is {best_hps.get('units1')} and th.
+    """)
     
    
 
