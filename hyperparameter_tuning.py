@@ -27,5 +27,32 @@ class MyHyperModel(kt.HyperModel):
         model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(learning_rate=hp_learning_rate), metrics=['accuracy'])
         return model
 
+def run_hyperparameter_tuning():
+    tuner2 = kt.BayesianOptimization(
+    MyHyperModel(),
+    objective="val_accuracy",
+    max_trials=50,
+    overwrite=True,
+    num_initial_points=25,
+    alpha=0.001,
+    beta=2.6
+)
+def main():    
+    X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec = load_data()
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+    tuner.search([X_train_gen, X_train_spec], y_train, 
+                 validation_data=([X_val_gen, X_val_spec], y_val),
+        callbacks=[es]
+    )
+    )
+    # Get the best hyperparameters
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    
+    # Optionally, save the best hyperparameters to a file for future reference
+    with open("best_hyperparameters.pkl", "wb") as f:
+        pkl.dump(best_hps, f)
 
+if __name__ == "__main__":
+    run_hyperparameter_tuning()
 
