@@ -67,5 +67,5 @@ def main():
         pkl.dump(best_hps, f)
 
 if __name__ == "__main__":
-    run_hyperparameter_tuning()
+    main()
 
