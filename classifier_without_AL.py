@@ -46,7 +46,6 @@ def load_from_file(filepath):
         return None
 
 
-
 def create_model():
     # domain-general and domain-specific model parts
     inp_gen = tf.keras.Input(shape=(1, INPUT_SIZE))
@@ -80,34 +79,14 @@ def load_hyperparameters_from_file(filename="best_hyperparameters.pkl"):
 
 def main():
     set_seeds_and_configurations()
-    # Load general sentence embeddings
-    X_train_gen, X_val_gen, X_test_gen, y_train, y_val, y_test, labels_total = load_general_embeddings()
-
-    # Load specific embeddings
-    X_train_spec, X_val_spec, X_test_spec = load_specific_embeddings()
-
-    # Load unsorted general data
-    data_general, labels_general = load_unsorted_general_data()
-
-    # Load cleaned data
-    df_train, df_test = load_cleaned_data()
-
-    # Load unsorted general data
-    data_general, labels_general = load_unsorted_general_data()
-
-# Load cleaned data
-    df_test, df_train = load_cleaned_data()
-
-    # Usage:
-    df_word_dist = word_distribution(df_train, df_test)
     
-    X_train_gen, X_val_gen, X_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total,  index_spec)
-    save_to_file(X_train_gen, "X_train_gen.pkl")
-    save_to_file(X_val_gen, "X_val_gen.pkl")
-    save_to_file(X_train_spec, "X_train_spec.pkl")
-    save_to_file(X_val_spec, "X_val_spec.pkl")
-    save_to_file(y_train, "y_train_.pkl")
-    save_to_file(y_val, "y_val.pkl")
+    # Load general and specific sentence embeddings
+    X_train_gen = load_from_file("X_train_gen.pkl")
+    X_val_gen = load_from_file("X_val_gen.pkl")
+    X_train_spec = load_from_file("X_train_spec.pkl")
+    X_val_spec = load_from_file("X_val_spec.pkl")
+    y_train = load_from_file("y_train.pkl")
+    X_val = load_from_file("y_val.pkl")
 
      hyperparameters = load_hyperparameters_from_file()
      # Create and compile the model
