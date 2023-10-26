@@ -197,7 +197,7 @@ def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, in
 
 def save_to_file(data, filename):
     with open(filename, "wb") as file:
-        pickle.dump(data, file)
+        pkl.dump(data, file)
 
 def main():
     set_seeds_and_configurations()
