@@ -84,6 +84,6 @@ save_data(np.vstack((data_general[:4200], data_left)), np.hstack((labels_general
 # For domain 4_3 (without reprocessing, as it's identical to 4_5 processing)
 save_data(data_general, labels_general, split_indices, f"{base_path}/val_test/vt_data4_3.p")
 save_data(np.vstack((data_general[:4200], data_left)), np.hstack((labels_general[:, :4200], labels_left)), split_indices, f"{base_path}/train/train_data4_3.p")
-The changes include:
+
 
 
