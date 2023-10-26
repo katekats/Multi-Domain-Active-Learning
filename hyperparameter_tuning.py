@@ -1,7 +1,14 @@
-# hypermodel.py
-
+import numpy as np
 import tensorflow as tf
 import kerastuner as kt
+
+TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p'
+TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p'
+TEST_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled3.p'
+TRAIN_CLEANED_DATA_PATH = 'data/cleaned_data/merged_cleaned.p'
+TEST_CLEANED_DATA_PATH = 'data/cleaned_data/test_cleaned.p
+
+
 
 class MyHyperModel(kt.HyperModel):
     def build(self, hp):
@@ -19,4 +26,6 @@ class MyHyperModel(kt.HyperModel):
         model = tf.keras.Model([inp_gen, inp_spec], merged)
         model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(learning_rate=hp_learning_rate), metrics=['accuracy'])
         return model
+
+
 
