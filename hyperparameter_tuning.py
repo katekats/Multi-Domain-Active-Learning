@@ -46,6 +46,10 @@ def load_from_file(filename):
 
 def preprocess_data(data):
     return np.expand_dims(np.asarray(data), 1) 
+
+def save_hyperparameters_to_file(hyperparameters, filename="best_hyperparameters.pkl"):
+    with open(filename, "wb") as file:
+        pickle.dump(hyperparameters, file)
     
 def main():    
     # Load general and specific sentence embeddings
