@@ -109,8 +109,7 @@ def main():
     print(f"Model Accuracy after filtering and sorting: {score_new[1]*100:.2f}%")
 
     # Visualize training history for both models (if necessary)
-    visualize_training_history(history, title="Original Training History")
-    visualize_training_history(history_new, title="Training History after Filtering and Sorting")
+    visualize_training_history(history, title="Training History")
 
     # Save model (if necessary)
     model.save('path_to_save_model/model.h5')
