@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import kerastuner as kt
+import pickle as pkl
 
 TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p'
 TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p'
@@ -38,27 +39,19 @@ def run_hyperparameter_tuning():
     beta=2.6
 )
 
-def load_general_embeddings():
-    # Load general embeddings
-    X_train_gen = load_data_from_file('data/sentence_embeddings/general/sorted/train/train_data5_8.p')
-    y_train = load_data_from_file('data/sentence_embeddings/general/sorted/train/train_labels5_8.p')
-    X_val_test_spec = load_data_from_file('data/sentence_embeddings/general/sorted/val_test/vt_data5_8.p')
-    y_val_test = load_data_from_file('data/sentence_embeddings/general/sorted/val_test/vt_labels5_8.p')
-    labels_total = np.hstack((y_train[:,:1400], y_val_test))
-    # Split and return data
-    return X_train_gen[:4200], X_val_test_spec[:600], X_val_test_spec[600:], y_train[0,:4200], y_val_test[0,:600], y_val_test[0,600:]labels_total
-
-def load_specific_embeddings():
-    X_spec = load_data_from_file('data/sentence_embeddings/specific/sentemb/sentemb_unlabeled5_8.p')
-    X_spec = np.repeat(X_spec, repeats=3, axis=1)
-    # Split and return data
-    return X_spec.transpose()[:4200], X_spec.transpose()[4200:4800], X_spec.transpose()[4800:]
+def load_from_file(filename):
+    with open(filename, "rb") as file:
+        data = pkl.load(file)
+    return data
     
 def main():    
-        # Load general sentence embeddings
-    X_train_gen, X_val_gen, X_test_gen, y_train, y_val, y_test, labels_total = load_general_embeddings()
-    # Load specific embeddings
-    X_train_spec, X_val_spec, X_test_spec = load_specific_embeddings()
+    # Load general sentence embeddings
+    X_train_gen = load_from_file("X_train_gen.pkl")
+    X_val_gen = load_from_file("X_val_gen.pkl")
+    X_train_spec = load_from_file("X_train_spec.pkl")
+    X_val_spec = load_from_file("X_val_spec.pkl")
+    y_train = load_from_file("y_train.pkl")
+    X_val = load_from_file("y_val.pkl")
     
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
     tuner.search([X_train_gen, X_train_spec], y_train, 
