@@ -43,6 +43,9 @@ def load_from_file(filename):
     with open(filename, "rb") as file:
         data = pkl.load(file)
     return data
+
+def preprocess_data(data):
+    return np.expand_dims(np.asarray(data).astype(np.float32), 1) 
     
 def main():    
     # Load general sentence embeddings
