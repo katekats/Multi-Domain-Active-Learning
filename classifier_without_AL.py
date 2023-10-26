@@ -37,8 +37,14 @@ def set_seeds_and_configurations():
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     tf.compat.v1.keras.backend.set_session(sess)
 
-import numpy as np
-import tensorflow as tf
+
+def load_hyperparameters_from_file(filename="best_hyperparameters.pkl"):
+    with open(filename, "rb") as file:
+        hyperparameters = pickle.load(file)
+    return hyperparameters
+
+def preprocess_data(data):
+    return np.expand_dims(np.asarray(data), 1) 
 
 def train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val, hyperparameters):
     """
@@ -72,40 +78,31 @@ def train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
     rlr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
     
-    history = model.fit([np.expand_dims(X_train_gen, 1), np.expand_dims(X_train_spec, 1)], y_train, 
+    history = model.fit([process_data(X_train_gen), process_data(X_train_spec), y_train, 
                         epochs=hyperparamepers['epochs'], 
-                        validation_data=([np.expand_dims(X_val_gen, 1), np.expand_dims(X_val_spec, 1)], y_val), 
+                        validation_data=([process_data(X_val_gen), process_data(X_val_spec)], y_val), 
                         callbacks=[checkpoint, es, rlr], 
                         batch_size=hyperparameters['batch_size'])
     
     return model, history
 
+def evaluate_model(model, X_test_gen, X_test_spec, y_test):
+    """Evaluate the given model."""
+    score = model.evaluate(
+        [preprocess_data(X_test_gen), preprocess_data(X_test_spec)],
+        preprocess_data(y_test),
+        verbose=0
+    )
+    return score
 
-
-def preprocess_data(data):
-    return np.expand_dims(np.asarray(data).astype(np.float32), 1)    
-
-def load_hyperparameters_from_file(filename="best_hyperparameters.pkl"):
-    with open(filename, "rb") as file:
-        hyperparameters = pickle.load(file)
-    return hyperparameters
 
 def main():
     set_seeds_and_configurations()
     
 
     hyperparameters = load_hyperparameters_from_file()
-    # Extract individual hyperparameters
-    dropout = hyperparameters['dropout']
-    units1 = hyperparameters['units1']
-    learning_rate = hyperparameters['learning_rate']
-    epochs = hyperparameters['epochs']
-    batch_size = hyperparameters['batch_size']
-    # Create and compile the model
-    # Assuming best_hps is already loaded from the pickle file
     model, history = train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
-
-    score_new = evaluate_model(classifier4, X_test_gen, X_test_spec, y_test)
+    score = evaluate_model(model, X_test_gen, X_test_spec, y_test)
 
     # Summarize the results
     print(f"Original Model Accuracy: {score[1]*100:.2f}%")
@@ -116,12 +113,8 @@ def main():
     visualize_training_history(history_new, title="Training History after Filtering and Sorting")
 
     # Save model (if necessary)
-    classifier4.save('path_to_save_model/model.h5')
+    model.save('path_to_save_model/model.h5')
 
-   
-
-# Evaluating the model
-    score = classifier.evaluate([np.expand_dims(X_test_gen, 1), np.expand_dims(X_test_spec, 1)], y_test, verbose=1)
-    print(f'Final accuracy score: {score[1]}')  
+    
 if __name__ == '__main__':
     main()
