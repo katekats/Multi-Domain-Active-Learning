@@ -38,8 +38,11 @@ def run_hyperparameter_tuning():
     beta=2.6
 )
 def main():    
-    X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec = load_data()
-    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+        # Load general sentence embeddings
+    X_train_gen, X_val_gen, X_test_gen, y_train, y_val, y_test, labels_total = load_general_embeddings()
+    # Load specific embeddings
+    X_train_spec, X_val_spec, X_test_spec = load_specific_embeddings()
+    
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
     tuner.search([X_train_gen, X_train_spec], y_train, 
                  validation_data=([X_val_gen, X_val_spec], y_val),
