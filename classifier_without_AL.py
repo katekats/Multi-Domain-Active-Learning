@@ -112,10 +112,6 @@ def evaluate_model(model, X_test_gen, X_test_spec, y_test):
 def preprocess_data(data):
     return np.expand_dims(np.asarray(data).astype(np.float32), 1)    
 
-import collections
-import regex as re
-import pandas as pd
-
 def word_distribution(df_train, df_test):
     """
     Get the word distribution of each domain.
@@ -198,6 +194,11 @@ def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, in
 def save_to_file(data, filename):
     with open(filename, "wb") as file:
         pkl.dump(data, file)
+
+def load_hyperparameters_from_file(filename="best_hyperparameters.pkl"):
+    with open(filename, "rb") as file:
+        hyperparameters = pickle.load(file)
+    return hyperparameters
 
 def main():
     set_seeds_and_configurations()
