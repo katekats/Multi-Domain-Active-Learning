@@ -36,8 +36,8 @@ def set_seeds_and_configurations():
     session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     tf.compat.v1.keras.backend.set_session(sess)
-
-def load_data_from_path(filepath):
+    
+def load_from_file(filepath):
     try:
         with open(filepath, 'rb') as f:
             return pkl.load(f)
