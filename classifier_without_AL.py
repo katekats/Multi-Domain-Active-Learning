@@ -37,27 +37,49 @@ def set_seeds_and_configurations():
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     tf.compat.v1.keras.backend.set_session(sess)
 
-def create_model():
-    # domain-general and domain-specific model parts
+import numpy as np
+import tensorflow as tf
+
+def train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val, hyperparameters):
+    """
+    Build and train a model using the best hyperparameters.
+
+    Args:
+    - X_train_gen, X_train_spec: Training data for general and specific inputs respectively.
+    - y_train: Training labels.
+    - X_val_gen, X_val_spec: Validation data for general and specific inputs respectively.
+    - y_val: Validation labels.
+    - best_hps: Best hyperparameters obtained from Bayesian optimization.
+
+    Returns:
+    - model: Trained model.
+    - history: History object from training.
+    """
+    
+    # Model building
     inp_gen = tf.keras.Input(shape=(1, INPUT_SIZE))
     inp_spec = tf.keras.Input(shape=(1, INPUT_SIZE))
-
-    # concatenate domain-general and domain-specific results
     merged = tf.keras.layers.Concatenate()([inp_gen, inp_spec])
-    merged = tf.keras.layers.Dense(INPUT_SIZE, activation='sigmoid')(merged)
-    merged = tf.keras.layers.Dropout(0.5)(merged)
+    merged = tf.keras.layers.Dense(hyperparameters['units1'], activation='sigmoid')(merged)
+    merged = tf.keras.layers.Dropout(hyperparameters['dropout'])(merged)
     merged = tf.keras.layers.Dense(1, activation='sigmoid')(merged)
-    
-    return tf.keras.Model([inp_gen, inp_spec], merged)
 
-def evaluate_model(model, X_test_gen, X_test_spec, y_test):
-    """Evaluate the given model."""
-    score = model.evaluate(
-        [preprocess_data(X_test_gen), preprocess_data(X_test_spec)],
-        preprocess_data(y_test),
-        verbose=0
-    )
-    return score
+    model = tf.keras.Model([inp_gen, inp_spec], merged)
+    model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(hyperparameters['learning_rate']), metrics=['accuracy'])
+
+    # Model training
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath="weights/classifier/classifier_without_al/standard_model/classifier_domain_3_15.h5")
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+    rlr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
+    
+    history = model.fit([np.expand_dims(X_train_gen, 1), np.expand_dims(X_train_spec, 1)], y_train, 
+                        epochs=hyperparamepers['epochs'], 
+                        validation_data=([np.expand_dims(X_val_gen, 1), np.expand_dims(X_val_spec, 1)], y_val), 
+                        callbacks=[checkpoint, es, rlr], 
+                        batch_size=hyperparameters['batch_size'])
+    
+    return model, history
+
 
 
 def preprocess_data(data):
@@ -71,25 +93,18 @@ def load_hyperparameters_from_file(filename="best_hyperparameters.pkl"):
 def main():
     set_seeds_and_configurations()
     
-    # Load general and specific sentence embeddings
-    X_train_gen = load_from_file("X_train_gen.pkl")
-    X_val_gen = load_from_file("X_val_gen.pkl")
-    X_train_spec = load_from_file("X_train_spec.pkl")
-    X_val_spec = load_from_file("X_val_spec.pkl")
-    y_train = load_from_file("y_train.pkl")
-    X_val = load_from_file("y_val.pkl")
 
-     hyperparameters = load_hyperparameters_from_file()
-     # Create and compile the model
-    classifier4 = create_model()
-    compile_model(classifier4)
+    hyperparameters = load_hyperparameters_from_file()
+    # Extract individual hyperparameters
+    dropout = hyperparameters['dropout']
+    units1 = hyperparameters['units1']
+    learning_rate = hyperparameters['learning_rate']
+    epochs = hyperparameters['epochs']
+    batch_size = hyperparameters['batch_size']
+    # Create and compile the model
+    # Assuming best_hps is already loaded from the pickle file
+    model, history = train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
 
-    # Train the model
-    history = train_model(classifier4, X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec)
-
-    # Evaluate the model
-    score = evaluate_model(classifier4, X_test_gen, X_test_spec, y_test)
-    history_new = train_model(classifier4, X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec)
     score_new = evaluate_model(classifier4, X_test_gen, X_test_spec, y_test)
 
     # Summarize the results
@@ -103,38 +118,7 @@ def main():
     # Save model (if necessary)
     classifier4.save('path_to_save_model/model.h5')
 
-    tuner2 = kt.BayesianOptimization(
-    MyHyperModel(),
-    objective="val_accuracy",
-    max_trials=50,
-    overwrite=True,
-    num_initial_points=25,
-    alpha=0.001,
-    beta=2.6
-)
-
-    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
-
-    tuner2.search([np.expand_dims(X_train_gen, 1), np.expand_dims(X_train_spec, 1)], y_train, validation_data=([np.expand_dims(X_val_gen, 1), np.expand_dims(X_val_spec, 1)], y_val), callbacks=[es])
-
-    best_hps = tuner2.get_best_hyperparameters(num_trials=1)[0]
-
-    # Building the model using best hyperparameters
-    inp_gen = tf.keras.Input(shape=(1, INPUT_SIZE))
-    inp_spec = tf.keras.Input(shape=(1, INPUT_SIZE))
-    merged = tf.keras.layers.Concatenate()([inp_gen, inp_spec])
-    merged = tf.keras.layers.Dense(best_hps.get('units1'), activation='sigmoid')(merged)
-    merged = tf.keras.layers.Dropout(best_hps.get('dropout'))(merged)
-    merged = tf.keras.layers.Dense(1, activation='sigmoid')(merged)
-
-    classifier = tf.keras.Model([inp_gen, inp_spec], merged)
-    classifier.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(best_hps.get('learning_rate')), metrics=['accuracy'])
-
-    # Training the model
-    checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath="weights/classifier/classifier_without_al/standard_model/classifier_domain_3_15.h5")
-    history = classifier.fit([np.expand_dims(X_train_gen, 1), np.expand_dims(X_train_spec, 1)], y_train, epochs=best_hps.get('epochs'), 
-                         validation_data=([np.expand_dims(X_val_gen, 1), np.expand_dims(X_val_spec, 1)], y_val), 
-                         callbacks=[checkpoint, es, rlr], batch_size=best_hps.get('batch_size'))
+   
 
 # Evaluating the model
     score = classifier.evaluate([np.expand_dims(X_test_gen, 1), np.expand_dims(X_test_spec, 1)], y_test, verbose=1)
