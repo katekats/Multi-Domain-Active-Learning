@@ -37,6 +37,10 @@ def set_seeds_and_configurations():
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     tf.compat.v1.keras.backend.set_session(sess)
 
+def load_from_file(filename):
+    with open(filename, "rb") as file:
+        data = pkl.load(file)
+    return data 
 
 def load_hyperparameters_from_file(filename="best_hyperparameters.pkl"):
     with open(filename, "rb") as file:
@@ -98,8 +102,13 @@ def evaluate_model(model, X_test_gen, X_test_spec, y_test):
 
 def main():
     set_seeds_and_configurations()
-    
-
+     # Load general and specific sentence embeddings
+    X_train_gen = load_from_file("X_train_gen.pkl")
+    X_val_gen = load_from_file("X_val_gen.pkl")
+    X_train_spec = load_from_file("X_train_spec.pkl")
+    X_val_spec = load_from_file("X_val_spec.pkl")
+    y_train = load_from_file("y_train.pkl")
+    X_val = load_from_file("y_val.pkl")
     hyperparameters = load_hyperparameters_from_file()
     model, history = train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
     score = evaluate_model(model, X_test_gen, X_test_spec, y_test)

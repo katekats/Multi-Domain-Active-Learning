@@ -32,25 +32,26 @@ def load_data_from_path(filepath):
 
 def load_general_embeddings():
     # Load general embeddings
-    X_train_gen_ = load_from_file('data/sentence_embeddings/general/sorted/train/train_data_'+str(index_spec)+'.p')
-    y_train = load_from_file('data/sentence_embeddings/general/sorted/train/train_labels_'+str(index_spec)+'.p')
-    X_val_test_spec = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_data_'+str(index_spec)+'.p')
-    y_val_test = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_labels_'+str(index_spec)+'.p')  
-    labels_total = np.hstack((y_train[:,:1400], y_val_test))
-    # Split and return data
-    return X_train_gen[:4200], X_val_test_spec[:600], X_val_test_spec[600:], y_train[0,:4200], y_val_test[0,:600], y_val_test[0,600:], labels_total
+    y_train_gen_all = load_from_file('data/sentence_embeddings/general/sorted/train/train_labels6_'+str(index_spec)+'.p')
+    X_val_test_gen = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_data6_'+str(index_spec)+'.p')
+    y_val_test = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_labels6_'+str(index_spec)+'.p')   
+    labels_total = np1.hstack((y_train_gen_all[:,:4200].astype(int), y_val_test))
+    X_val_gen, X_test_gen = X_val_test_gen[:600], X_val_test_gen[600:]
+    y_train_gen_all = y_train_gen_all[0,:]
+    y_train, y_val, y_test = y_train_gen_all[:4200], y_val_test[0,:600], y_val_test[0,600:]
+
+    return X_train_gen_all, X_val_gen, X_val_test_gen, y_train_gen_all, y_train, y_val, y_test, labels_total
 
 def load_specific_embeddings():
-    X_spec = load_data_from_file('data/sentence_embeddings/specific/sentemb/sentemb_unlabeled5_8.p')
+    X_spec = load_data_from_file('data/sentence_embeddings/specific/sentemb/sentemb_unlabeled3_'+str(i)+'.p')
     X_spec = np.repeat(X_spec, repeats=3, axis=1)
     # Split and return data
     return X_spec.transpose()[:4200], X_spec.transpose()[4200:4800], X_spec.transpose()[4800:]
 
 def load_unsorted_general_data():
-    data_general = load_data_from_file('data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p')
-    labels_train = load_data_from_file('data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p')
-    labels_test = load_data_from_file('data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled3.p')
-    
+    data_general = load_data_from_file('data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3_'+str(index_spec)+'.p')
+    labels_train = load_data_from_file('data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3_'+str(index_spec)+'.p')
+    labels_test = load_data_from_file('data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled3_'+str(index_spec)+'.p')
     labels_general = np.hstack((labels_train, labels_test))
     data_general = data_general.transpose()
 
@@ -58,12 +59,10 @@ def load_unsorted_general_data():
 
 def load_cleaned_data():
     df_train = load_data_from_file('data/cleaned_data/merged_cleaned.p')
-    df_test = load_data_from_file('data/cleaned_data/test_cleaned.p')
-    
+    df_test = load_data_from_file('data/cleaned_data/test_cleaned.p')   
     # Remove unlabeled data from train
     list_unlabel = df_train.index[df_train['label'] == 3].to_list()
-    df_train = df_train[~df_train.index.isin(list_unlabel)].reset_index(drop=True)
-    
+    df_train = df_train[~df_train.index.isin(list_unlabel)].reset_index(drop=True)   
     return df_train, df_test
 
 
@@ -84,24 +83,17 @@ def word_distribution(df_train, df_test):
     # Create a list of data frames dfs, each data frame represents one domain
     df = pd.concat([df_train, df_test], ignore_index=True)
     dfs = [x for _, x in df.groupby('domain')]
-
     word_counter = []
     words = re.compile(r'\w+')
-
     for df in dfs:
         counts = collections.Counter()
-        reviews = np.array([s for s in df['text']])
-        
+        reviews = np.array([s for s in df['text']])       
         for review in reviews:
-            counts.update(words.findall(review.lower()))
-        
+            counts.update(words.findall(review.lower()))        
         word_counter.append(counts)
-
     df_dist = pd.DataFrame(word_counter)
     df_dist = df_dist.fillna(0)
-
     return df_dist
-
 
 
 def sort_array(array_to_sort, array_ref):
@@ -121,20 +113,17 @@ def sort_array(array_to_sort, array_ref):
     return indeces_sorted
 
 
-def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, index_spec):
-    
+def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, index_spec):   
     js_d = [distance.jensenshannon(np.array(df_dist.iloc[index_spec]), row) for _, row in df_dist.iterrows()]
-
     most_sim_dist = sorted(range(len(js_d)), key=lambda i: js_d[i], reverse=True)[-5:]
     most_sim_dist.remove(index_spec)
     indices_to_keep = [i for i, value in enumerate(labels_general[1]) if int(value) in most_sim_dist]
     labels_general, data_general = labels_general[:, indices_to_keep], data_general[indices_to_keep]
-
-    ind = sort_array(labels_general, labels_total)
+    ind_train = sort_array(labels_train, labels_total_train_val)
     data_general, labels_general = data_general[ind], labels_general[:, ind]
-
-    X_train_gen, X_val_gen, X_test_gen = data_general[:4200], data_general[4200:4800], data_general[4800:]
-    return X_train_gen, X_val_gen, X_test_gen
+    X_train_gen, X_val_gen, X_test_gen = data_general[:5000], data_general[5000:6000], data_general[6000:7700]
+    y_train_gen, y_val_gen, y_test_gen = labels_general[:5000], labels_general[5000:6000], labels_general[6000:7700]
+    return X_train_gen, X_val_gen, X_test_gen, y_train_gen, y_val_gen, y_test_gen
 
 def save_to_file(data, filename):
     with open(filename, "wb") as file:
@@ -143,17 +132,14 @@ def save_to_file(data, filename):
 
 def main():
     # Load general sentence embeddings
-    X_train_gen, X_val_gen, X_test_gen, y_train, y_val, y_test, labels_total = load_general_embeddings()
-
+    X_train_gen_all, X_val_gen, X_val_test_gen, y_train_gen_all, y_train, y_val, y_test, labels_total
+= load_general_embeddings()
     # Load specific embeddings
     X_train_spec, X_val_spec, X_test_spec = load_specific_embeddings()
-
     # Load unsorted general data
     data_general, labels_general = load_unsorted_general_data()
-
     # Load cleaned data
     df_train, df_test = load_cleaned_data()
-
     # Load unsorted general data
     data_general, labels_general = load_unsorted_general_data()
 
@@ -163,10 +149,15 @@ def main():
     # Usage:
     df_word_dist = word_distribution(df_train, df_test)
     
-    X_train_gen, X_val_gen, X_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total,  index_spec)
-    save_to_file(X_train_gen, "X_train_gen.pkl")
-    save_to_file(X_val_gen, "X_val_gen.pkl")
-    save_to_file(X_train_spec, "X_train_spec.pkl")
-    save_to_file(X_val_spec, "X_val_spec.pkl")
-    save_to_file(y_train, "y_train_.pkl")
-    save_to_file(y_val, "y_val.pkl")
+    X_train_gen, X_val_gen, X_test_gen, y_train, y_val_gen_gen, y_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total,  index_spec)
+    save_to_file(X_train_gen, "X_train_AL_gen_"+str(index_spec)+".pkl")
+    save_to_file(X_val_gen, "X_val_AL_gen_"+str(index_spec)+".pkl")
+    save_to_file(X_test_gen, "X_test_AL_gen_"+str(index_spec)+".pkl")
+    save_to_file(X_train_spec, "X_train_AL_spec_"+str(index_spec)+".pkl")
+    save_to_file(X_val_spec, "X_val_AL_spec_"+str(index_spec)+".pkl")
+    save_to_file(X_test_spec, "X_test_AL_spec_"+str(index_spec)+".pkl")
+    save_to_file(y_train_gen, "y_train_gen_AL_"+str(index_spec)+".pkl")
+    save_to_file(y_train, "y_train_AL_"+str(index_spec)+".pkl")
+    save_to_file(y_val_gen, "y_val_gen_AL"+str(index_spec)+".pkl")
+    save_to_file(y_test_gen, "y_val_gen_AL"+str(index_spec)+".pkl")
+    save_to_file(y_val, "y_val_AL"+str(index_spec)+".pkl")
