@@ -13,7 +13,7 @@ from scipy.spatial import distance
 DEFAULT_INDEX_SPEC = 5
 
 # Reading from environment variable or using default
-INDEX_SPEC = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
+index_spec = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
 
 TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p'
 TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p'
