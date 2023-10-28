@@ -28,13 +28,6 @@ index_spec = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
 
 INPUT_SIZE = 300
 
-TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p'
-TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p'
-TEST_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled3.p'
-TRAIN_CLEANED_DATA_PATH = 'data/cleaned_data/merged_cleaned.p'
-TEST_CLEANED_DATA_PATH = 'data/cleaned_data/test_cleaned.p'
-
-
 
 def set_seeds_and_configurations():
     # Setting seeds to reproduce results
@@ -239,7 +232,7 @@ def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test
     return X_train_gen, X_train_spec, y_train_spec, X_val_gen, X_val_spec, y_val_spec, X_test_gen, X_test_spec, y_test_spec
 
 
-def classifier_with_AL(index_spec, pars[0]): 
+def classifier_with_AL(index_spec, par0): 
     # set the target domain
     set_seeds_and_configurations()
      # Load general and specific sentence embeddings
@@ -267,17 +260,17 @@ def classifier_with_AL(index_spec, pars[0]):
     X_test_gen = X_test_gen[ind3]
     model, history = train_model_with_best_hyperparameters(X_train_gen_al, X_train_spec_al, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
     score = evaluate_model(model, X_test_gen, X_test_spec, y_test)
-    return(k, pars[0], 'Final accuracy score: '+str(score[1]))
+    return(index_spec, pars[0], 'Final accuracy score: '+str(score[1]))
  
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run classifier with given parameters.')
     parser.add_argument('spec_index', type=int, help='Index for the classifier.')
-    parser.add_argument('par1', type=int, help='First parameter.')
+    parser.add_argument('par0', type=int, help='First parameter.')
 
     args = parser.parse_args()
 
-    print(f"Running classifier_with_AL with spec_index: {args.spec_index}, par1: {args.par1}, par2: {args.par2}")
+    print(f"Running classifier_with_AL with spec_index: {args.spec_index}, par1: {args.par1}")
     x = classifier_with_AL(args.spec_index, args.par1)
     print(x)
 
