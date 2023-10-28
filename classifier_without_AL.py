@@ -5,13 +5,8 @@ import tensorflow as tf
 import pickle as pkl
 import pandas as pd
 import re
+import argparse
 
-
-# Defining constants
-DEFAULT_INDEX_SPEC = 5
-
-# Reading from environment variable or using default
-INDEX_SPEC = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
 
 TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p'
 TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p'
@@ -101,6 +96,10 @@ def evaluate_model(model, X_test_gen, X_test_spec, y_test):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Run the classifier with given parameters.')
+    parser.add_argument('--spec-index', type=int, default=DEFAULT_INDEX_SPEC, help='Index for the classifier.')    
+    args = parser.parse_args()
+    spec_index = args.spec_index
     set_seeds_and_configurations()
      # Load general and specific sentence embeddings
     X_train_gen = load_from_file("X_train_gen.pkl")

@@ -12,5 +12,7 @@ The requirements directory also contains a requirements_ae.txt which can come in
 
 If the entire framework is desired to be executed, the data set [1] needs to be saved in the directory "data/uncleaned_data/" and the following files need to be executed in this specific order: preprocessing.ipynb, autoencoder.ipynb and data_selection_splitting.ipynb. The resulting sentence embeddings can then be fed into the classifier. If the classifier without prior active learning is desired to be executed, the file classifier_without_al.ipynb is run. For executing the classifier with active learning, the file classifier_with_al.ipynb is run.
 
-python classifier_with_al.py 1 1600 2000
+python classifier_without_al.py --spec-index 5 
+
+python al_module.py 1 1600 2000
 

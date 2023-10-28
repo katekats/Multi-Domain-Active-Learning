@@ -7,7 +7,7 @@ class TestCase:
         self.pars = pars
         
 test_cases = [
-    TestCase("experiment 1", range(0,16), [(1400, 2000)]),
+    TestCase("experiment 1", range(0,16), [(1400)]),
 ]
 
 if __name__ == '__main__':
@@ -15,5 +15,5 @@ if __name__ == '__main__':
         for i in test_case.i_range:
             for pars in test_case.pars:
                 print(test_case.name, i, pars)
-                x = classifier_with_AL(i, pars[0], pars[1])
+                x = classifier_with_AL(i, pars[0])
                 print(x)

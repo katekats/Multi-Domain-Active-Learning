@@ -173,7 +173,7 @@ def evaluate_model(model, X_test_gen, X_test_spec, y_test):
     )
     return score
 
-def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test_gen, X_val_spec, X_test_spec, y_val_gen, y_test_gen, y_val_spec, y_test_spec, max_query1, max_query2, uncertainty_sampling, outlier_detection):
+def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test_gen, X_val_spec, X_test_spec, y_val_gen, y_test_gen, y_val_spec, y_test_spec, max_query1, uncertainty_sampling, outlier_detection):
     # Preprocess and initializations
     data_gen, data_spec, labels_gen, labels_spec = preprocess_data(data_gen, data_spec, labels_gen, labels_spec, outlier_detection)
     X_train_gen, X_valid_gen, y_train_gen, y_valid_gen = data_gen[:150], data_gen[150:], labels_gen[:150], labels_gen[150:]
@@ -239,7 +239,7 @@ def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test
     return X_train_gen, X_train_spec, y_train_spec, X_val_gen, X_val_spec, y_val_spec, X_test_gen, X_test_spec, y_test_spec
 
 
-def classifier_with_AL(index_spec, par0, par1): 
+def classifier_with_AL(index_spec, pars[0]): 
     # set the target domain
     set_seeds_and_configurations()
      # Load general and specific sentence embeddings
@@ -258,7 +258,7 @@ def classifier_with_AL(index_spec, par0, par1):
     hyperparameters = load_hyperparameters_from_file()
 # data splitting
     X_train_gen_al,X_train_spec_al, y_train_gen_al, y_train_spec_al  = AL_algorithm( X_train_gen, X_train_spec, y_train_gen, 
-    y_train, np.vstack((X_val_gen,X_test_gen)), np.vstack((X_val_spec,X_test_spec)), np.hstack((y_val_gen,y_test_gen)),np.hstack((y_val,y_test)),pars[0], pars[1], True, index_spec)   
+    y_train, np.vstack((X_val_gen,X_test_gen)), np.vstack((X_val_spec,X_test_spec)), np.hstack((y_val_gen,y_test_gen)),np.hstack((y_val,y_test)),pars[0], True, index_spec)   
     ind = sort_array(y_train_gen_al, y_train_spec_al)
     X_train_gen_al, y_train = X_train_gen_al[ind], y_train_spec_al 
     ind2 = sort_array(y_val_gen, y_val)
@@ -267,19 +267,18 @@ def classifier_with_AL(index_spec, par0, par1):
     X_test_gen = X_test_gen[ind3]
     model, history = train_model_with_best_hyperparameters(X_train_gen_al, X_train_spec_al, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
     score = evaluate_model(model, X_test_gen, X_test_spec, y_test)
-    return(k, pars[0], pars[1], 'Final accuracy score: '+str(score[1]))
+    return(k, pars[0], 'Final accuracy score: '+str(score[1]))
  
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run classifier with given parameters.')
     parser.add_argument('spec_index', type=int, help='Index for the classifier.')
     parser.add_argument('par1', type=int, help='First parameter.')
-    parser.add_argument('par2', type=int, help='Second parameter.')
 
     args = parser.parse_args()
 
     print(f"Running classifier_with_AL with spec_index: {args.spec_index}, par1: {args.par1}, par2: {args.par2}")
-    x = classifier_with_AL(args.spec_index, args.par1, args.par2)
+    x = classifier_with_AL(args.spec_index, args.par1)
     print(x)
 
 
