@@ -15,9 +15,9 @@ DEFAULT_INDEX_SPEC = 5
 # Reading from environment variable or using default
 index_spec = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
 
-TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p'
-TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p'
-TEST_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled3.p'
+TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.pkl'
+TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.pkl'
+TEST_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled3.pkl'
 TRAIN_CLEANED_DATA_PATH = 'data/cleaned_data/merged_cleaned.p'
 TEST_CLEANED_DATA_PATH = 'data/cleaned_data/test_cleaned.p'
 
@@ -32,24 +32,24 @@ def load_data_from_path(filepath):
 
 def load_general_embeddings():
     # Load general embeddings
-    X_train_gen_ = load_from_file('data/sentence_embeddings/general/sorted/train/train_data_'+str(index_spec)+'.p')
-    y_train = load_from_file('data/sentence_embeddings/general/sorted/train/train_labels_'+str(index_spec)+'.p')
-    X_val_test_spec = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_data_'+str(index_spec)+'.p')
-    y_val_test = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_labels_'+str(index_spec)+'.p')  
+    X_train_gen_ = load_from_file('data/sentence_embeddings/general/sorted/train/train_data_'+str(index_spec)+'.pkl')
+    y_train = load_from_file('data/sentence_embeddings/general/sorted/train/train_labels_'+str(index_spec)+'.pkl')
+    X_val_test_spec = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_data_'+str(index_spec)+'.pkl')
+    y_val_test = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_labels_'+str(index_spec)+'.pkl')  
     labels_total = np.hstack((y_train[:,:1400], y_val_test))
     # Split and return data
     return X_train_gen[:4200], X_val_test_spec[:600], X_val_test_spec[600:], y_train[0,:4200], y_val_test[0,:600], y_val_test[0,600:], labels_total
 
 def load_specific_embeddings():
-    X_spec = load_data_from_file('data/sentence_embeddings/specific/sentemb/sentemb_unlabeled5_8.p')
+    X_spec = load_data_from_file('data/sentence_embeddings/specific/sentemb/sentemb_unlabeled_'+str(index_spec)+'.pkl')
     X_spec = np.repeat(X_spec, repeats=3, axis=1)
     # Split and return data
     return X_spec.transpose()[:4200], X_spec.transpose()[4200:4800], X_spec.transpose()[4800:]
 
 def load_unsorted_general_data():
-    data_general = load_data_from_file('data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p')
-    labels_train = load_data_from_file('data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p')
-    labels_test = load_data_from_file('data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled3.p')
+    data_general = load_data_from_file('data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled.pkl')
+    labels_train = load_data_from_file('data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled.pkl')
+    labels_test = load_data_from_file('data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled.pkl')
     labels_general = np.hstack((labels_train, labels_test))
     data_general = data_general.transpose()
     return data_general, labels_general
@@ -165,9 +165,9 @@ def main():
     # Usage:
     df_word_dist = word_distribution(df_train, df_test)   
     X_train_gen, X_val_gen, X_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total,  index_spec)
-    save_to_file(X_train_gen, "X_train_gen.pkl")
-    save_to_file(X_val_gen, "X_val_gen.pkl")
-    save_to_file(X_train_spec, "X_train_spec.pkl")
-    save_to_file(X_val_spec, "X_val_spec.pkl")
-    save_to_file(y_train, "y_train_.pkl")
-    save_to_file(y_val, "y_val.pkl")
+    save_to_file(X_train_gen, "X_train_gen_"+str(index_spec)+".pkl")
+    save_to_file(X_val_gen, "X_val_gen_"+str(index_spec)+".pkl")
+    save_to_file(X_train_spec, "X_train_spec_"+str(index_spec)+".pkl")
+    save_to_file(X_val_spec, "X_val_spec_"+str(index_spec)+".pkl")
+    save_to_file(y_train, "y_train_"+str(index_spec)+".pkl")
+    save_to_file(y_val, "y_val_"+str(index_spec)+".pkl")

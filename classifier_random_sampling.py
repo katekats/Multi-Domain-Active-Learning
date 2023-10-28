@@ -1,17 +1,31 @@
 import os
 import numpy as np
+import numpy as np1
 import random as rn
-import tensorflow as tf
 import pickle as pkl
-import pandas as pd
+from random import randint
+import matplotlib.pyplot as plt
+from sklearn.svm import SVC
+from sklearn.metrics import f1_score
+from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.covariance import EllipticEnvelope
+import tensorflow as tf
 import re
-
+import glob
+import pandas as pd
+import random as rn    
+from collections import Counter
+import matplotlib.pyplot as plt
+from scipy.spatial import distance
 
 # Defining constants
 DEFAULT_INDEX_SPEC = 5
 
 # Reading from environment variable or using default
-INDEX_SPEC = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
+index_spec = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
+
+INPUT_SIZE = 300
 
 TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p'
 TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p'
@@ -19,11 +33,7 @@ TEST_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label
 TRAIN_CLEANED_DATA_PATH = 'data/cleaned_data/merged_cleaned.p'
 TEST_CLEANED_DATA_PATH = 'data/cleaned_data/test_cleaned.p'
 
-# Constants
-INPUT_SIZE = 300
-TRAINING_SIZE = 4200
-VALIDATION_SIZE = 600
-TOTAL_SIZE = TRAINING_SIZE + VALIDATION_SIZE  # assuming 4800 total for training and validation
+
 
 def set_seeds_and_configurations():
     # Setting seeds to reproduce results
@@ -31,24 +41,22 @@ def set_seeds_and_configurations():
     np.random.seed(1)
     rn.seed(2)
     tf.random.set_seed(3)
-
     # Configurations to use a single thread
     session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
     tf.compat.v1.keras.backend.set_session(sess)
 
-def load_from_file(filename):
-    with open(filename, "rb") as file:
-        data = pkl.load(file)
-    return data 
 
-def load_hyperparameters_from_file(filename="best_hyperparameters.pkl"):
-    with open(filename, "rb") as file:
-        hyperparameters = pickle.load(file)
-    return hyperparameters
+# function for sorting two arrays such that both arrays have the same labels
+def sort_array(labels, labels_ref):
+    index_gen_zeros = np.where(labels == 0)[0]
+    index_gen_ones = np.where(labels == 1)[0]
+    
+    result_ind = np.zeros_like(labels_ref, dtype=int)
+    result_ind[labels_ref == 0] = index_gen_zeros
+    result_ind[labels_ref == 1] = index_gen_ones
 
-def preprocess_data(data):
-    return np.expand_dims(np.asarray(data), 1) 
+    return result_ind
 
 def train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val, hyperparameters):
     """
@@ -59,7 +67,7 @@ def train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_
     - y_train: Training labels.
     - X_val_gen, X_val_spec: Validation data for general and specific inputs respectively.
     - y_val: Validation labels.
-    - hyperparrameters: Best hyperparameters obtained from Bayesian optimization.
+    - hyperparameters: Best hyperparameters obtained from Bayesian optimization.
 
     Returns:
     - model: Trained model.
@@ -90,7 +98,7 @@ def train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_
     
     return model, history
 
-def evaluate_model(model, X_test_gen, X_test_spec, y_test):
+    def evaluate_model(model, X_test_gen, X_test_spec, y_test):
     """Evaluate the given model."""
     score = model.evaluate(
         [preprocess_data(X_test_gen), preprocess_data(X_test_spec)],
@@ -99,30 +107,15 @@ def evaluate_model(model, X_test_gen, X_test_spec, y_test):
     )
     return score
 
-
-def main():
-    set_seeds_and_configurations()
-     # Load general and specific sentence embeddings
-    X_train_gen = load_from_file("X_train_gen.pkl")
-    X_val_gen = load_from_file("X_val_gen.pkl")
-    X_train_spec = load_from_file("X_train_spec.pkl")
-    X_val_spec = load_from_file("X_val_spec.pkl")
-    y_train = load_from_file("y_train.pkl")
-    X_val = load_from_file("y_val.pkl")
-    hyperparameters = load_hyperparameters_from_file()
-    model, history = train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
-    score = evaluate_model(model, X_test_gen, X_test_spec, y_test)
-
-    # Summarize the results
-    print(f"Original Model Accuracy: {score[1]*100:.2f}%")
-    print(f"Model Accuracy after filtering and sorting: {score_new[1]*100:.2f}%")
-
-    # Visualize training history for both models (if necessary)
-    visualize_training_history(history, title="Training History")
-
-    # Save model (if necessary)
-    model.save('path_to_save_model/model.h5')
-
-    
-if __name__ == '__main__':
-    main()
+    def main():
+        set_seeds_and_configurations()
+        # Load general and specific sentence embeddings
+        X_train_gen = load_from_file("X_train_gen.pkl")
+        X_val_gen = load_from_file("X_val_gen.pkl")
+        X_train_spec = load_from_file("X_train_spec.pkl")
+        X_val_spec = load_from_file("X_val_spec.pkl")
+        y_train = load_from_file("y_train.pkl")
+        X_val = load_from_file("y_val.pkl")
+        hyperparameters = load_hyperparameters_from_file()
+        model, history = train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
+        score = evaluate_model(model, X_test_gen, X_test_spec, y_test)
