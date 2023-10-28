@@ -238,50 +238,7 @@ def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test
             break
     return X_train_gen, X_train_spec, y_train_spec, X_val_gen, X_val_spec, y_val_spec, X_test_gen, X_test_spec, y_test_spec
 
-# importing the data for the general sentence embeddings, here corresponding data from domain 0 was chosen
 
-
-class TestCase:
-    def __init__(self, name, i_range, pars):
-        self.name = name
-        self.i_range = i_range
-        self.pars = pars
-        
-test_cases = [
-    TestCase("peirama 1", range(0,16), [(1400, 2000)]),
-]
-
-for test_case in test_cases:
-    for i in test_case.i_range:
-        for pars in test_case.pars:
-            print(test_case.name, i, pars)
-            x = return_results_AL(i, pars[0], pars[1])
-            print(x)
-
-
-
-tf.keras.utils.plot_model(model, show_shapes=True, to_file='TRIAL_2_AL_full.png')
-
-acc = history.history['acc']
-val_acc = history.history['val_acc']
-loss = history.history['loss']
-val_loss = history.history['val_loss']
-
-epochs = range(1, len(acc) + 1)
-
-plt.plot(epochs, acc, 'bo', label='Training acc')
-plt.plot(epochs, val_acc, 'b', label='Validation acc')
-plt.title('Training and validation accuracy')
-plt.legend()
-
-plt.figure()
-plt.plot(epochs, loss, 'ro', label='Training loss')
-plt.plot(epochs, val_loss, 'r', label='Validation loss')
-plt.title('Training and validation loss')
-plt.legend()
-
-
-# importing the data for the general sentence embeddings, here corresponding data from domain 0 was chosen
 def classifier_with_AL(index_spec, par0, par1): 
     # set the target domain
     set_seeds_and_configurations()
@@ -326,42 +283,6 @@ if __name__ == "__main__":
     print(x)
 
 
-class TestCase:
-   def __init__(self, name, i_range):
-       self.name = name
-       self.i_range = i_range
-      # self.pars = pars
-       
-test_cases = [
-   TestCase("peirama 1", range(0,16)),
-#     TestCase("peirama 1", range(0,16), [(1400, 2200), (2100, 3000)]),
-  # TestCase("peirama 2", range(0,16), [1400, 2200])
-  # TestCase("peirama 3", range(0,100), [(1400, 2200), (2100, 3000)]),
-]
-
-for test_case in test_cases:
-   for i in test_case.i_range:
-      # for pars in test_case.pars:
-       print(test_case.name, i)
-       x = return_results_AL(i)
-       print(x)
-
-
-        
-test_cases = [
-    TestCase("peirama 1", range(0,16), [(1400, 2000)]),
-#     TestCase("peirama 1", range(0,16), [(1400, 2200), (2100, 3000)]),
-#     TestCase("peirama 2", range(0,16), [(1400, 2200), (2100, 3000)]),
-   # TestCase("peirama 3", range(0,100), [(1400, 2200), (2100, 3000)]),
-]
-
-for test_case in test_cases:
-    for i in test_case.i_range:
-        for pars in test_case.pars:
-            print(test_case.name, i, pars)
-            x = return_results_AL(i, pars[0], pars[1])
-            print(x)
-           # data = pd.DataFrame(x)
 
 
 
