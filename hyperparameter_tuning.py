@@ -3,12 +3,6 @@ import tensorflow as tf
 import kerastuner as kt
 import pickle as pkl
 
-TRAIN_GEN_EMBEDDINGS_PATH = 'data/sentence_embeddings/general/unsorted/sentemb/sentemb_unlabeled3.p'
-TRAIN_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_train_sentemb_unlabeled3.p'
-TEST_LABELS_PATH = 'data/sentence_embeddings/general/unsorted/label_domain/label_domain_test_sentemb_unlabeled3.p'
-TRAIN_CLEANED_DATA_PATH = 'data/cleaned_data/merged_cleaned.p'
-TEST_CLEANED_DATA_PATH = 'data/cleaned_data/test_cleaned.p
-
 
 
 class MyHyperModel(kt.HyperModel):

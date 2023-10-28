@@ -19,7 +19,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
 import argparse
-
+from jensen_shannon_augmentation_AL import jensen_shannon_with_AL
 # Defining constants
 DEFAULT_INDEX_SPEC = 5
 
@@ -232,36 +232,28 @@ def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test
     return X_train_gen, X_train_spec, y_train_spec, X_val_gen, X_val_spec, y_val_spec, X_test_gen, X_test_spec, y_test_spec
 
 
-def classifier_with_AL(index_spec, par0): 
+def classifier_with_AL(spec_index, par0): 
     # set the target domain
     set_seeds_and_configurations()
-     # Load general and specific sentence embeddings
-    X_train_gen = load_from_file("X_train_gen_"+str(index_spec)+".pkl")
-    X_val_gen = load_from_file("X_val_gen_"+str(index_spec)+".pkl")
-    X_test_gen = load_from_file("X_test_gen_"+str(index_spec)+".pkl")
-    X_train_spec = load_from_file("X_train_spec_"+str(index_spec)+".pkl")
-    X_test_spec = load_from_file("X_test_spec_"+str(index_spec)+".pkl")
-    X_val_spec = load_from_file("X_val_spec_"+str(index_spec)+".pkl")
-    y_train_gen = load_from_file("y_train_gen"+str(index_spec)+".pkl")
-    y_train = load_from_file("y_train_"+str(index_spec)+".pkl")
-    y_val_gen = load_from_file("y_val_"+str(index_spec)+".pkl")
-    y_val = load_from_file("y_val_"+str(index_spec)+".pkl")
-    y_test = load_from_file("y_test_"+str(index_spec)+".pkl")
-    y_test_gen = load_from_file("y_test_gen_"+str(index_spec)+".pkl")
     hyperparameters = load_hyperparameters_from_file()
-# data splitting
-    X_train_gen_al,X_train_spec_al, y_train_gen_al, y_train_spec_al  = AL_algorithm( X_train_gen, X_train_spec, y_train_gen, 
-    y_train, np.vstack((X_val_gen,X_test_gen)), np.vstack((X_val_spec,X_test_spec)), np.hstack((y_val_gen,y_test_gen)),np.hstack((y_val,y_test)),pars[0], True, index_spec)   
-    ind = sort_array(y_train_gen_al, y_train_spec_al)
-    X_train_gen_al, y_train = X_train_gen_al[ind], y_train_spec_al 
+    X_train_gen, X_val_gen, X_test_gen, X_train_spec, X_val_spec, X_test_spec, y_train_gen, y_train, y_val_gen, y_test_gen, y_val, y_test = jensen_shannon_with_AL(spec_index)
+    
+    # data splitting
+    X_train_gen_updated, X_train_spec_updated, y_train_gen_updated, y_train_spec_updated = AL_algorithm(
+        X_train_gen, X_train_spec, y_train_gen, y_train, 
+        np.vstack((X_val_gen, X_test_gen)), np.vstack((X_val_spec, X_test_spec)), 
+        np.hstack((y_val_gen, y_test_gen)), np.hstack((y_val, y_test)), 
+        par0, True, spec_index)   
+    
+    ind = sort_array(y_train_gen_updated, y_train_spec_updated)
+    X_train_gen_updated, y_train = X_train_gen_updated[ind], y_train_spec_updated 
     ind2 = sort_array(y_val_gen, y_val)
     X_val_gen = X_val_gen[ind2]
     ind3 = sort_array(y_test_gen, y_test)
     X_test_gen = X_test_gen[ind3]
-    model, history = train_model_with_best_hyperparameters(X_train_gen_al, X_train_spec_al, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
+    model, history = train_model_with_best_hyperparameters(X_train_gen_updated, X_train_spec_updated, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
     score = evaluate_model(model, X_test_gen, X_test_spec, y_test)
-    return(index_spec, pars[0], 'Final accuracy score: '+str(score[1]))
- 
+    return (spec_index, par0, 'Final accuracy score: '+str(score[1]))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run classifier with given parameters.')
@@ -270,10 +262,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print(f"Running classifier_with_AL with spec_index: {args.spec_index}, par1: {args.par1}")
-    x = classifier_with_AL(args.spec_index, args.par1)
+    print(f"Running classifier_with_AL with spec_index: {args.spec_index}, par0: {args.par0}")
+    x = classifier_with_AL(args.spec_index, args.par0)
     print(x)
-
 
 
 

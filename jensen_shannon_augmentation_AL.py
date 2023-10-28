@@ -9,11 +9,7 @@ import collections
 import re
 from scipy.spatial import distance
 
-# Defining constants
-DEFAULT_INDEX_SPEC = 5
 
-# Reading from environment variable or using default
-index_spec = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
 
 
 def load_data_from_path(filepath):
@@ -125,10 +121,9 @@ def save_to_file(data, filename):
         pkl.dump(data, file)
 
 
-def main():
+def jensen_shannon_with_AL(index_spec):
     # Load general sentence embeddings
-    X_train_gen_all, X_val_gen, X_val_test_gen, y_train_gen_all, y_train, y_val, y_test, labels_total
-        = load_general_embeddings()
+    X_train_gen_all, X_val_gen, X_val_test_gen, y_train_gen_all, y_train, y_val, y_test, labels_total = load_general_embeddings()
     # Load specific embeddings
     X_train_spec, X_val_spec, X_test_spec = load_specific_embeddings()
     # Load unsorted general data
@@ -144,7 +139,7 @@ def main():
     # Usage:
     df_word_dist = word_distribution(df_train, df_test)
     
-    X_train_gen, X_val_gen, X_test_gen, y_train, y_val_gen_gen, y_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total,  index_spec)
+    X_train_gen, X_val_gen, X_test_gen, y_train, y_val_gen_gen, y_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total)
     save_to_file(X_train_gen, "X_train_AL_gen_"+str(index_spec)+".pkl")
     save_to_file(X_val_gen, "X_val_AL_gen_"+str(index_spec)+".pkl")
     save_to_file(X_test_gen, "X_test_AL_gen_"+str(index_spec)+".pkl")
@@ -157,3 +152,4 @@ def main():
     save_to_file(y_test_gen, "y_test_gen_AL"+str(index_spec)+".pkl")
     save_to_file(y_val, "y_val_AL"+str(index_spec)+".pkl")
     save_to_file(y_test, "y_test_AL"+str(index_spec)+".pkl")
+    return X_train_gen, X_val_gen, X_test_gen, X_train_spec, X_val_spec, X_test_spec, y_train_gen, y_train, y_val_gen_gen, y_test_gen, y_val, y_test
