@@ -1,2 +1,3 @@
 classifier_random_sampling.py
-
+autoencoder_general_specific.ipynb
+classifier_with_al-My_version-2.ipynb

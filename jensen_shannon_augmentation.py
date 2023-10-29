@@ -8,7 +8,7 @@ import pandas as pd
 import collections
 import re
 from scipy.spatial import distance
-
+import argparse
 
 
 def load_data_from_path(filepath):
@@ -176,3 +176,14 @@ def jensen_shannon(spec_index):
     save_to_file(y_val, "y_val_"+str(spec_index)+".pkl")
     save_to_file(y_test, "y_test_"+str(spec_index)+".pkl")
     return X_train_gen, X_val_gen, X_test_gen, X_train_spec, X_val_spec, X_test_spec, y_train, y_val, y_test
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='Calculate the Jensen-Shannon Distance.')
+    parser.add_argument('spec_index', type=int, help='Index for the domain.')
+
+    args = parser.parse_args()
+
+    print(f"Running Jensen-Shannon distance for the domain with spec_index: {args.spec_index}")
+    x = jensen_shannon(args.spec_index)
+    print(x)

@@ -162,3 +162,7 @@ def jensen_shannon_with_AL(pec_index):
     save_to_file(y_val, "y_val_AL"+str(spec_index)+".pkl")
     save_to_file(y_test, "y_test_AL"+str(spec_index)+".pkl")
     return X_train_gen, X_val_gen, X_test_gen, X_train_spec, X_val_spec, X_test_spec, y_train_gen, y_train, y_val_gen_gen, y_test_gen, y_val, y_test
+
+if __name__ == "__main__":
+    spec_index = 0  # replace 0 with an appropriate value or obtain it from user input or arguments
+    jensen_shannon(spec_index)

@@ -30,7 +30,10 @@ def load_data(base_path, domain):
 
 def sort_array(array_to_sort, array_ref):
     """
-    Sort one array based on another reference array's structure.
+    
+    Function for sorting two arrays such that both arrays have the same labels.
+    It sorts one array based on another reference array's structure.
+# It returns indeces_sorted which consists of indices.
     """
     y, y_ref = array_to_sort[0].astype(int), array_ref[0].astype(int)
     
