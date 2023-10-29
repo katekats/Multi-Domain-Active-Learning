@@ -101,15 +101,3 @@ if __name__ == "__main__":
 
 
 
-if __name__ == '__main__':
-
-     # Argument parser setup to enable command line inputs
-    parser = argparse.ArgumentParser(description='Run classifier with given parameters.')
-    parser.add_argument('spec_index', type=int, help='Index for the classifier.')
-
-    args = parser.parse_args()
-
-    print(f"Running classifier_without_AL with spec_index: {args.spec_index}")
-    x = run_the_classifier(args.spec_index)
-    print(x)
-
