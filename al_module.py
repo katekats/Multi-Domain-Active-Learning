@@ -20,11 +20,8 @@ import matplotlib.pyplot as plt
 from scipy.spatial import distance
 import argparse
 from jensen_shannon_augmentation_AL import jensen_shannon_with_AL
-# Defining constants
-DEFAULT_INDEX_SPEC = 5
 
-# Reading from environment variable or using default
-index_spec = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
+# Defining constants
 
 INPUT_SIZE = 300
 
@@ -101,7 +98,7 @@ def create_classifier(input_size):
 def train_classifier(classifier, X_train_gen, X_train_spec, y_train, X_val_gen, X_val_spec, y_val_spec):
     classifier.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(0.01), metrics=['accuracy'])
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
-    checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath="weights/classifier/classifier_with_al/certainty_sampling/classifier_domain__"+str(index_spec)+".h5")
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath="weights/classifier/classifier_with_al/certainty_sampling/classifier_domain__"+str(spec_index)+".h5")
     history = classifier.fit(
         [preprocess_data_classifier(X_train_gen), 
          preprocess_data_classifier(X_train_spec)], 
@@ -145,7 +142,7 @@ def train_model_with_best_hyperparameters(X_train_gen, X_train_spec, y_train, X_
     model.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(hyperparameters['learning_rate']), metrics=['accuracy'])
 
     # Model training
-    checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath="weights/classifier/classifier_with_al/standard_model/classifier_domain_"+str(index_spec)+".h5")
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath="weights/classifier/classifier_with_al/standard_model/classifier_domain_"+str(spec_index)+".h5")
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
     rlr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
     
@@ -166,12 +163,35 @@ def evaluate_model(model, X_test_gen, X_test_spec, y_test):
     )
     return score
 
+# Helper function for the AL_algorithm function
+def update_data_sets(X_train, y_train, X_valid, y_valid, indices):
+    """
+    Update training and validation sets based on selected indices.
+
+    Parameters:
+    - X_train, y_train: Training data and labels
+    - X_valid, y_valid: Validation data and labels
+    - indices: Selected indices from uncertainty-based sampling
+
+    Returns:
+    Updated training and validation sets
+    """
+    X_train_updated = np.vstack((X_train, X_valid[indices]))
+    y_train_updated = np.hstack((y_train, y_valid[indices]))
+    X_valid_updated = np.delete(X_valid, indices, axis=0)
+    y_valid_updated = np.delete(y_valid, indices, axis=0)
+    
+    return X_train_updated, y_train_updated, X_valid_updated, y_valid_updated    
+
 def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test_gen, X_val_spec, X_test_spec, y_val_gen, y_test_gen, y_val_spec, y_test_spec, max_query1, uncertainty_sampling, outlier_detection):
-    # Preprocess and initializations
+    # Initial preprocessing and data partitioning
     data_gen, data_spec, labels_gen, labels_spec = preprocess_data(data_gen, data_spec, labels_gen, labels_spec, outlier_detection)
     X_train_gen, X_valid_gen, y_train_gen, y_valid_gen = data_gen[:150], data_gen[150:], labels_gen[:150], labels_gen[150:]
     X_train_spec, X_valid_spec, y_train_spec, y_valid_spec = data_spec[:100], data_spec[100:], labels_spec[:100], labels_spec[100:]
+    
     classifier = create_classifier(INPUT_SIZE)
+
+     # Sort test and validation data for generative models
     ind1 = sort_array(y_test_gen, y_test_spec)
     X_test_gen, y_test_gen = X_test_gen[ind1], y_test_spec
     ind2 = sort_array(y_val_gen, y_val_spec)
@@ -180,13 +200,14 @@ def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test
     scaler = MinMaxScaler(feature_range=(0, 1))
 
     # Active learning loop
-    while True:           
+    while True:     
+     # Sort training and validation data for both generative and specific models  
         ind3 = sort_array(y_train_gen, y_train_spec)
         X_train_gen1, y_train1 = X_train_gen[ind3], y_train_spec
         ind4 = sort_array(y_valid_gen, y_valid_spec)
         X_valid_gen1, y_valid_gen1 = X_valid_gen[ind4], y_valid_spec
         
-        # Scaling
+        # Scaling data for normalization
         X_train_gen1 = scale_data(X_train_gen1, scaler)
         X_valid_gen1 = scale_data(X_valid_gen1, scaler)
         X_test_gen = scale_data(X_test_gen, scaler)
@@ -196,66 +217,69 @@ def AL_algorithm(data_gen, data_spec, labels_gen, labels_spec, X_val_gen, X_test
         X_test_spec = scale_data(X_test_spec, scaler)
         X_val_spec = scale_data(X_val_spec, scaler)
 
-        # Training
+       # Training the classifier
         train_classifier(classifier, X_train_gen1, X_train_spec, y_train1, X_valid_gen, X_valid_spec, y_val_spec)
         
-        # Get predictions for validation set
+        # Acquiring prediction probabilities for the validation set
         get_prob = np.squeeze(classifier.predict([np.expand_dims(X_valid_gen, 1), np.expand_dims(X_valid_spec, 1)]))
         prob = [1-get_prob[i] if get_prob[i]<0.5 else get_prob[i] for i in range(get_prob.shape[0])]
         
-        # Sample based on uncertainty
+        # Uncertainty-based sampling: Select samples with least/most certainty based on the active learning strategy
         ind = np.argsort(prob)[:100] if uncertainty_sampling else np.argsort(prob)[-100:]
         
-        # Update training and validation sets
-        X_train_gen = np.vstack((X_train_gen1, X_valid_gen1[ind]))
-        y_train_gen = np.hstack((y_train1, y_valid_gen1[ind]))
-        X_valid_gen = np.delete(X_valid_gen1, ind, axis=0)
-        y_valid_gen = np.delete(y_valid_gen1, ind, axis=0) 
-        X_train_spec = np.vstack((X_train_spec, X_valid_spec[ind]))
-        y_train_spec = np.hstack((y_train_spec, y_valid_spec[ind]))
-        X_valid_spec = np.delete(X_valid_spec, ind, axis=0)
-        y_valid_spec = np.delete(y_valid_spec, ind, axis=0)
+        # Update training and validation sets with sampled data
+        X_train_gen, y_train_gen, X_valid_gen, y_valid_gen = update_data_sets(X_train_gen1, y_train1, X_valid_gen1, y_valid_gen1, ind)
+        X_train_spec, y_train_spec, X_valid_spec, y_valid_spec = update_data_sets(X_train_spec, y_train_spec, X_valid_spec, y_valid_spec, ind)
         
-          # inverse scaling
-        X_train_gen = reverse_scale_data(X_train_gen) 
-        X_valid_gen = reverse_scale_data(X_valid_gen)
-        X_test_gen = reverse_scale_data(X_test_gen)
-        X_val_gen =reverse_scale_data(X_val_gen)
-          # inverse scaling
-        X_train_spec = reverse_scale_datam(X_train_spec) 
-        X_valid_spec = reverse_scale_data(X_valid_spec)
-        X_test_spec = reverse_scale_data(X_test_spec)
-        X_val_spec =reverse_scale_data(X_val_spec)
-        # Check stopping criteria
+
+        # Reverting data scaling for the next iteration
+        X_train_gen, X_valid_gen, X_test_gen, X_val_gen = [reverse_scale_data(data) for data in [X_train_gen, X_valid_gen, X_test_gen, X_val_gen]]
+        X_train_spec, X_valid_spec, X_test_spec, X_val_spec = [reverse_scale_data(data) for data in [X_train_spec, X_valid_spec, X_test_spec, X_val_spec]]     
+        
+        
+        # Break loop if we've queried more than the maximum allowed
         if X_train_spec.shape[0] > max_query1:
             break
     return X_train_gen, X_train_spec, y_train_spec, X_val_gen, X_val_spec, y_val_spec, X_test_gen, X_test_spec, y_test_spec
 
 
 def classifier_with_AL(spec_index, par0): 
-    # set the target domain
+    # Initialize random seeds and configurations for reproducibility
     set_seeds_and_configurations()
+    # Load hyperparameters for training the model
     hyperparameters = load_hyperparameters_from_file()
+    # Get the  domain with the 4 most similar distributions using the Jensen-Shannon method with the specified index
     X_train_gen, X_val_gen, X_test_gen, X_train_spec, X_val_spec, X_test_spec, y_train_gen, y_train, y_val_gen, y_test_gen, y_val, y_test = jensen_shannon_with_AL(spec_index)
     
-    # data splitting
+     # Implement active learning on the datasets to get updated training datasets
     X_train_gen_updated, X_train_spec_updated, y_train_gen_updated, y_train_spec_updated = AL_algorithm(
         X_train_gen, X_train_spec, y_train_gen, y_train, 
         np.vstack((X_val_gen, X_test_gen)), np.vstack((X_val_spec, X_test_spec)), 
         np.hstack((y_val_gen, y_test_gen)), np.hstack((y_val, y_test)), 
         par0, True, spec_index)   
     
+        # Sort training data for potentially balanced batching or other purposes
     ind = sort_array(y_train_gen_updated, y_train_spec_updated)
     X_train_gen_updated, y_train = X_train_gen_updated[ind], y_train_spec_updated 
+    
+    # Sort validation data 
     ind2 = sort_array(y_val_gen, y_val)
     X_val_gen = X_val_gen[ind2]
+
+     # Sort test data
     ind3 = sort_array(y_test_gen, y_test)
     X_test_gen = X_test_gen[ind3]
+    
+    # Train the model using the best hyperparameters
     model, history = train_model_with_best_hyperparameters(X_train_gen_updated, X_train_spec_updated, y_train, X_val_gen, X_val_spec, y_val, hyperparameters)
+    # Evaluate the model on the test set
     score = evaluate_model(model, X_test_gen, X_test_spec, y_test)
-    return (spec_index, par0, 'Final accuracy score: '+str(score[1]))
+    # Return the results
+     return (spec_index, par0, f"Final accuracy score: {score[1]*100:.2f}%")
+    
 
 if __name__ == "__main__":
+    # Argument parser setup to enable command line inputs
     parser = argparse.ArgumentParser(description='Run classifier with given parameters.')
     parser.add_argument('spec_index', type=int, help='Index for the classifier.')
     parser.add_argument('par0', type=int, help='First parameter.')
@@ -265,6 +289,8 @@ if __name__ == "__main__":
     print(f"Running classifier_with_AL with spec_index: {args.spec_index}, par0: {args.par0}")
     x = classifier_with_AL(args.spec_index, args.par0)
     print(x)
+
+
 
 
 

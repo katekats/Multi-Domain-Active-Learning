@@ -9,11 +9,6 @@ import collections
 import re
 from scipy.spatial import distance
 
-# Defining constants
-DEFAULT_INDEX_SPEC = 5
-
-# Reading from environment variable or using default
-index_spec = int(os.getenv('INDEX_SPEC', DEFAULT_INDEX_SPEC))
 
 
 def load_data_from_path(filepath):
@@ -27,16 +22,16 @@ def load_data_from_path(filepath):
 
 def load_general_embeddings():
     # Load general embeddings
-    X_train_gen_ = load_from_file('data/sentence_embeddings/general/sorted/train/train_data_'+str(index_spec)+'.pkl')
-    y_train = load_from_file('data/sentence_embeddings/general/sorted/train/train_labels_'+str(index_spec)+'.pkl')
-    X_val_test_spec = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_data_'+str(index_spec)+'.pkl')
-    y_val_test = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_labels_'+str(index_spec)+'.pkl')  
+    X_train_gen_ = load_from_file('data/sentence_embeddings/general/sorted/train/train_data_'+str(spec_index)+'.pkl')
+    y_train = load_from_file('data/sentence_embeddings/general/sorted/train/train_labels_'+str(spec_index)+'.pkl')
+    X_val_test_spec = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_data_'+str(spec_index)+'.pkl')
+    y_val_test = load_from_file('data/sentence_embeddings/general/sorted/val_test/vt_labels_'+str(spec_index)+'.pkl')  
     labels_total = np.hstack((y_train[:,:1400], y_val_test))
     # Split and return data
     return X_train_gen[:4200], X_val_test_spec[:600], X_val_test_spec[600:], y_train[0,:4200], y_val_test[0,:600], y_val_test[0,600:], labels_total
 
 def load_specific_embeddings():
-    X_spec = load_data_from_file('data/sentence_embeddings/specific/sentemb/sentemb_unlabeled_'+str(index_spec)+'.pkl')
+    X_spec = load_data_from_file('data/sentence_embeddings/specific/sentemb/sentemb_unlabeled_'+str(spec_index)+'.pkl')
     X_spec = np.repeat(X_spec, repeats=3, axis=1)
     # Split and return data
     return X_spec.transpose()[:4200], X_spec.transpose()[4200:4800], X_spec.transpose()[4800:]
@@ -128,10 +123,10 @@ def sort_array(array_to_sort, array_ref):
     return indeces_sorted.astype(int)
 >>>>>>> de764fb3fa93558734efc7909d89b34387bebcfe
 
-def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, index_spec):
-    js_d = [distance.jensenshannon(np.array(df_dist.iloc[index_spec]), row) for _, row in df_dist.iterrows()]
+def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, spec_index):
+    js_d = [distance.jensenshannon(np.array(df_dist.iloc[spec_index]), row) for _, row in df_dist.iterrows()]
     most_sim_dist = sorted(range(len(js_d)), key=lambda i: js_d[i], reverse=True)[-5:]
-    most_sim_dist.remove(index_spec)
+    most_sim_dist.remove(spec_index)
     indices_to_keep = [i for i, value in enumerate(labels_general[1]) if int(value) in most_sim_dist]
     labels_general, data_general = labels_general[:, indices_to_keep], data_general[indices_to_keep]
     ind = sort_array(labels_general, labels_total)
@@ -144,7 +139,7 @@ def save_to_file(data, filename):
         pkl.dump(data, file)
 
 
-def main():
+def jensen_shannon(spec_index):
     # Load general sentence embeddings
     X_train_gen, X_val_gen, X_test_gen, y_train, y_val, y_test, labels_total = load_general_embeddings()
     # Load specific embeddings
@@ -159,10 +154,14 @@ def main():
     df_test, df_train = load_cleaned_data()
     # Usage:
     df_word_dist = word_distribution(df_train, df_test)   
-    X_train_gen, X_val_gen, X_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total,  index_spec)
-    save_to_file(X_train_gen, "X_train_gen_"+str(index_spec)+".pkl")
-    save_to_file(X_val_gen, "X_val_gen_"+str(index_spec)+".pkl")
-    save_to_file(X_train_spec, "X_train_spec_"+str(index_spec)+".pkl")
-    save_to_file(X_val_spec, "X_val_spec_"+str(index_spec)+".pkl")
-    save_to_file(y_train, "y_train_"+str(index_spec)+".pkl")
-    save_to_file(y_val, "y_val_"+str(index_spec)+".pkl")
+    X_train_gen, X_val_gen, X_test_gen = filter_and_sort_data(df_word_dist, labels_general, data_general, labels_total,  spec_index)
+    save_to_file(X_train_gen, "X_train_gen_"+str(spec_index)+".pkl")
+    save_to_file(X_val_gen, "X_val_gen_"+str(spec_index)+".pkl")
+    save_to_file(X_test_gen, "X_rest_gen_"+str(spec_index)+".pkl")
+    save_to_file(X_train_spec, "X_train_spec_"+str(spec_index)+".pkl")
+    save_to_file(X_val_spec, "X_val_spec_"+str(spec_index)+".pkl")
+    save_to_file(X_test_spec, "X_test_spec_"+str(spec_index)+".pkl")
+    save_to_file(y_train, "y_train_"+str(spec_index)+".pkl")
+    save_to_file(y_val, "y_val_"+str(spec_index)+".pkl")
+    save_to_file(y_test, "y_test_"+str(spec_index)+".pkl")
+    return X_train_gen, X_val_gen, X_test_gen, X_train_spec, X_val_spec, X_test_spec, y_train, y_val, y_test
