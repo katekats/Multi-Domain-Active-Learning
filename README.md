@@ -28,9 +28,15 @@ Then we will use the general and specific embeddings that where created previous
 
 python al-module.py
 
-that uses the Active learning alforithm with Uncertainty Sampling and Isolation Forests with our proposed classifier to query the most informative instances. After trials we have concluded that by using only 38% of the initial labeled data we achieve highly-accurate results. 
+that uses the Active learning alforithm with Uncertainty Sampling and Isolation Forests with our proposed classifier to query the most informative instances. After trials we have concluded that by using only 38% of the initial labeled data we achieve highly-accurate results. Then we run the script:
 
+Test_Case.py
+
+to get the accuracy results for the 16 domains.
+
+
+**Classification without AL**  
 python classifier_without_al.py --spec-index 5 
 
-python al_module.py 1 1600 2000
+
 
