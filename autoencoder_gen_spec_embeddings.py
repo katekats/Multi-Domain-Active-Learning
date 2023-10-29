@@ -87,12 +87,22 @@ def save_embeddings(embedding_type, embeddings, label_domain_merged, label_domai
     else:  # SPECIFIC
         path_prefix = "data/sentence_embeddings/specific"
 
-    pkl.dump(embeddings, open(f"{path_prefix}/sentemb/sentemb_unlabeled.pkl", "wb"))
-    pkl.dump(label_domain_merged, open(f"{path_prefix}/label_domain/label_domain_train_sentemb_unlabeled.pkl", "wb"))
-    pkl.dump(label_domain_test, open(f"{path_prefix}/label_domain/label_domain_test_sentemb_unlabeled.pkl", "wb"))
+    paths = [
+        f"{path_prefix}/sentemb/sentemb_unlabeled.pkl",
+        f"{path_prefix}/label_domain/label_domain_train_sentemb_unlabeled.pkl",
+        f"{path_prefix}/label_domain/label_domain_test_sentemb_unlabeled.pkl"
+    ]
+    
+    data_to_dump = [embeddings, label_domain_merged, label_domain_test]
+
+    for path, data in zip(paths, data_to_dump):
+        ensure_directory_exists(path)
+        with open(path, "wb") as file:
+            pkl.dump(data, file)
+
+
 
 def process_and_save_embeddings(encoder_model, data, label_domain_merged, label_domain_test, embedding_type, domain=None):
-    
     # Use encoder to generate sentence embeddings
     sentence_embeddings = encoder_model.predict(data)
 
@@ -111,19 +121,31 @@ def process_and_save_embeddings(encoder_model, data, label_domain_merged, label_
      # Determine save paths based on embedding type
     if embedding_type == 'GENERAL':
         base_path = "data/sentence_embeddings/general/unsorted/"
-        filename_suffix = "unlabeled14"
+        filename_suffix = "unlabeled"
     else:  # SPECIFIC
         if domain is None:
             raise ValueError("For specific embeddings, the domain number must be provided.")
         base_path = "data/sentence_embeddings/specific/unsorted/"
-        filename_suffix = f"unlabeled{domain}_14"
+        filename_suffix = f"unlabeled{domain}"
 
-    # Save the processed embeddings and labels
-    pkl.dump(filtered_embeddings, open(os.path.join(base_path, f"sentemb/sentemb_{filename_suffix}.pkl"), "wb"))
-    pkl.dump(filtered_labels, open(os.path.join(base_path, f"label_domain/label_domain_train_sentemb_{filename_suffix}.pkl"), "wb"))
-    pkl.dump(label_domain_test, open(os.path.join(base_path, f"label_domain/label_domain_test_sentemb_{filename_suffix}.pkl"), "wb"))
+    # Define paths to save files
+    save_paths = [
+        os.path.join(base_path, f"sentemb/sentemb_{filename_suffix}.pkl"),
+        os.path.join(base_path, f"label_domain/label_domain_train_sentemb_{filename_suffix}.pkl"),
+        os.path.join(base_path, f"label_domain/label_domain_test_sentemb_{filename_suffix}.pkl")
+    ]
+    
+    # Data to dump into the files
+    data_to_dump = [filtered_embeddings, filtered_labels, label_domain_test]
+
+    # Ensure directories exist and then save data
+    for path, data in zip(save_paths, data_to_dump):
+        ensure_directory_exists(path)
+        with open(path, "wb") as file:
+            pkl.dump(data, file)
 
     return filtered_embeddings, filtered_labels
+
 
 def load_data_from_file(filename):
     with open(filename, 'rb') as f:
