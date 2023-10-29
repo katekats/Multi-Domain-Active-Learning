@@ -16,6 +16,38 @@ The requirements directory also contains a requirements_ae.txt which can come in
 
 If the entire framework is desired to be executed, the data set [1] needs to be saved in the directory "data/uncleaned_data/" and the following files need to be executed in this specific order: preprocessing.ipynb, autoencoder.ipynb and data_selection_splitting.ipynb. The resulting sentence embeddings can then be fed into the classifier. If the classifier without prior active learning is desired to be executed, the file classifier_without_al.ipynb is run. For executing the classifier with active learning, the file classifier_with_al.ipynb is run.
 
+The order we should run our scripts is the following:
+* data_loader.ipynb
+* preprocessing-withoutTFIDF.ipynb
+* python autoencoder_gen_spec_embeddings.py --embedding-type GENERAL
+* python autoencoder_gen_spec_embeddings.py --embedding-type SPECIFIC
+* python data_selection_splitting.py
+* python jensen jensen_shannon_augmentation.py SPEC_INDEX_VALUE
+* python hyperparameter_tuning.py
+* python classifier_without_al.py SPEC_INDEX_VALUE (if we want the results for a single domain) __OR__ python Test_Case_without_AL.py (if we want to get the results for all domains)
+* python al-module.py SPEC_INDEX_VALUE PAR0_VALUE (if we want the results for a single domain) __OR__ python Test_Case.py (if we want to get the results for all domains)
+**Loading the data**
+We use the __data_loader.ipynb__ to load and clean the data.
+**Preprocessing the Data**
+In the script __preprocessing-withoutTFIDF.ipynb__ we proceed with preprocessing the data by giving a specific number to each domain:
+{'MR': 0,
+ 'apparel': 1,
+ 'baby': 2,
+ 'books': 3,
+ 'camera_photo': 4,
+ 'dvd': 5,
+ 'electronics': 6,
+ 'health_personal_care': 7,
+ 'imdb': 8,
+ 'kitchen_housewares': 9,
+ 'magazines': 10,
+ 'music': 11,
+ 'software': 12,
+ 'sports_outdoors': 13,
+ 'toys_games': 14,
+ 'video': 15} 
+
+ Based on the histogram, we decide on the sequence length and vocabularry size and we use pre-trained FastText embeddings for vectorizing the reviews to be suitable inputs for the autoencoder.
 
 **Autoencoder for general and domain-specific sentence embeddings**  
 
@@ -26,6 +58,10 @@ __python autoencoder_gen_spec_embeddings.py --embedding-type GENERAL__
 Then the same script with SPECIFIC as embedding type to calculate the domain-specific embeddings of each of the 16 domains:  
 
 __python autoencoder_gen_spec_embeddings.py --embedding-type SPECIFIC__
+
+**Data Splitting**
+
+We proceed with augmenting the domain specific embedding data by multiplying them three times and sort them with the general embeddings based on the same sentiment (positive or negative). Then, we split the data into 70-10-20 for train-validation-test sets (as in the state-of-the-art).
 
 **Classification without AL**  
 Then we will use the general and specific embeddings that where created previous as inputs of the classifier. The domain specific embeddings are augmented by multiplying them three times and then we select the general sentence embeddings from four most similar domains by using the Jensen-Shanon distance. We run the script:
