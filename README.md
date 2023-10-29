@@ -26,6 +26,7 @@ The order we should run our scripts is the following:
 * python hyperparameter_tuning.py
 * python classifier_without_al.py SPEC_INDEX_VALUE (if we want the results for a single domain) __OR__ python Test_Case_without_AL.py (if we want to get the results for all domains)
 * python al-module.py SPEC_INDEX_VALUE PAR0_VALUE (if we want the results for a single domain) __OR__ python Test_Case.py (if we want to get the results for all domains)
+  
 **Loading the data**
 We use the __data_loader.ipynb__ to load and clean the data.
 **Preprocessing the Data**
