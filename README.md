@@ -1,5 +1,9 @@
 # Multi-Domain-Active-Learning
-Multi Domain Sentiment Classification using Active Learning
+This repo is from the paper: Katsarou, Katerina, Roxana Jeney, and Kostas Stefanidis. "MUTUAL: Multi-Domain Sentiment Classification via Uncertainty Sampling." Proceedings of the 38th ACM/SIGAPP Symposium on Applied Computing. 2023.
+
+MUTUAL is a technique designed to learn both general and domain-specific sentence embeddings, which are further enriched by being context-sensitive through the incorporation of an attention mechanism. In this research, we introduce a model constructed from a stacked BiLSTM Autoencoder with an embedded attention layer to craft these specialized sentence embeddings. Using the Jensen-Shannon (JS) distance metric, we identify and select the general sentence embeddings from the four domains most closely related to our target domain. Subsequently, these selected embeddings, along with domain-specific ones, are combined and passed through a dense neural layer during training. Complementing this, we also present an active learning strategy. It commences by leveraging the elliptic envelope method to weed out outliers from an unlabeled dataset, which MUTUAL then classifies. From this classification, the data points with the highest uncertainty are chosen for labeling, grounded on the least confidence measure.
+
+Multi Domain Sentiment Classification using Active Learning 
 ## Getting Started
 For running the framework, this work recommends creating a new virtual environment which uses the python version 3.7.7.
 Afterwards, install the packages in the requirements.txt of the requirements_files directory to get started. Using anaconda, the commands look like this:
@@ -24,11 +28,11 @@ Then the same script with SPECIFIC as embedding type to calculate the domain-spe
 python autoencoder_gen_spec_embeddings.py --embedding-type SPECIFIC
 
 **Classification with AL**  
-Then we will use the general and specific embeddings that where created previous as inputs of the classifier. The domain specific embeddings are augmented by multiplying them three times and then we select the general sentence embeddings from four most similar domains by using the Jensen-Shanon disrance. the function jensen_shannon_with_AL from jensen_shannon_augmentation_AL to calculate and return the general embeddings the four most similar domains. Then, We run the script: 
+Then we will use the general and specific embeddings that where created previous as inputs of the classifier. The domain specific embeddings are augmented by multiplying them three times and then we select the general sentence embeddings from four most similar domains by using the Jensen-Shanon distance. the function jensen_shannon_with_AL from jensen_shannon_augmentation_AL to calculate and return the general embeddings the four most similar domains. Then, We run the script: 
 
 python al-module.py
 
-that uses the Active learning alforithm with Uncertainty Sampling and Isolation Forests with our proposed classifier to query the most informative instances. After trials we have concluded that by using only 38% of the initial labeled data we achieve highly-accurate results. Then we run the script:
+that uses the Active learning alforithm with Uncertainty Sampling and Elliptic Envelope with our proposed classifier to query the most informative instances. After trials we have concluded that by using only 38% of the initial labeled data we achieve highly-accurate results. Then we run the script:
 
 Test_Case.py
 
