@@ -87,9 +87,9 @@ def save_embeddings(embedding_type, embeddings, label_domain_merged, label_domai
     else:  # SPECIFIC
         path_prefix = "data/sentence_embeddings/specific"
 
-    pkl.dump(embeddings, open(f"{path_prefix}/sentemb/sentemb_unlabeled14.pkl", "wb"))
+    pkl.dump(embeddings, open(f"{path_prefix}/sentemb/sentemb_unlabeled.pkl", "wb"))
     pkl.dump(label_domain_merged, open(f"{path_prefix}/label_domain/label_domain_train_sentemb_unlabeled.pkl", "wb"))
-    pkl.dump(label_domain_test, open(f"{path_prefix}/label_domain/label_domain_test_sentemb_unlabeled14.pkl", "wb"))
+    pkl.dump(label_domain_test, open(f"{path_prefix}/label_domain/label_domain_test_sentemb_unlabeled.pkl", "wb"))
 
 def process_and_save_embeddings(encoder_model, data, label_domain_merged, label_domain_test, embedding_type, domain=None):
     
@@ -132,11 +132,11 @@ def load_data_from_file(filename):
 def main():
     global embedding_type
     # Load the common data for all domains
-    with h5py.File('data/fully_preprocessed_data/X_merged_preprocessed_new14.h5', 'r') as g:
+    with h5py.File('data/fully_preprocessed_data/X_merged_preprocessed_new.h5', 'r') as g:
         X_merged = np.zeros((55824, 50, 300), dtype='float64')
         g['data'].read_direct(X_merged)
 
-    with h5py.File('data/fully_preprocessed_data/X_test_preprocessed_new14.h5', 'r') as h:
+    with h5py.File('data/fully_preprocessed_data/X_test_preprocessed_new.h5', 'r') as h:
         X_test = np.zeros((6400, 50, 300), dtype='float64')
         h['data'].read_direct(X_test)
 
@@ -172,8 +172,8 @@ def main():
 
     else:  # For 'GENERAL'
         # Load domain-specific labels for GENERAL type
-        label_domain_test = load_data_from_file('domain_and_label_test.p')
-        label_domain_merged = load_data_from_file('domain_and_label_merged.p')
+        label_domain_test = load_data_from_file('domain_and_label_test.pkl')
+        label_domain_merged = load_data_from_file('domain_and_label_merged.pkl')
         # Shuffle data
         X_merged, label_domain_merged = shuffle_data(X_merged, label_domain_merged, seed=42)
         X_test, label_domain_test = shuffle_data(X_test, label_domain_test, seed=43)
