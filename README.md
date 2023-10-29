@@ -21,33 +21,44 @@ If the entire framework is desired to be executed, the data set [1] needs to be 
 
 Next, we will generate the general and sentence embeddings by using BiLSTM-based autoencoder with Self-Attention. We will run the script: autoencoder_gen_spec_embeddings.py, with the embedding type GENERAL to calculate the general embeddings:
 
-python autoencoder_gen_spec_embeddings.py --embedding-type GENERAL
+__python autoencoder_gen_spec_embeddings.py --embedding-type GENERAL__
 
 Then the same script with SPECIFIC as embedding type to calculate the domain-specific embeddings of each of the 16 domains:  
 
-python autoencoder_gen_spec_embeddings.py --embedding-type SPECIFIC
+__python autoencoder_gen_spec_embeddings.py --embedding-type SPECIFIC__
+
+**Classification without AL**  
+Then we will use the general and specific embeddings that where created previous as inputs of the classifier. The domain specific embeddings are augmented by multiplying them three times and then we select the general sentence embeddings from four most similar domains by using the Jensen-Shanon distance. We run the script:
+__python jensen jensen_shannon_augmentation.py SPEC_INDEX_VALUE__
+
+where __SPEC_INDEX_VALUE__ is the domain number (between 0 and 15). Then since we have the two input for the classifier we proceed with hyperparameter tuning:
+__python hyperparameter_tuning.py__
+
+Then we proceed with the classifier without the presence of active learning. We call the function __jensen_shannon__ from __jensen_shannon_augmentation__ to calculate and return the general embeddings the four most similar domains. We run the script: 
+
+__python classifier_without_al.py SPEC_INDEX_VALUE__
+
+where SPEC_INDEX_VALUE is for the domain number (it is between 0 and 15). However, if we want to get the results for all domain we do not run python python al-module.py 3 1600 but we only run:
+
+__python Test_Case_without_AL.py__
+
 
 **Classification with AL**  
-Then we will use the general and specific embeddings that where created previous as inputs of the classifier. The domain specific embeddings are augmented by multiplying them three times and then we select the general sentence embeddings from four most similar domains by using the Jensen-Shanon distance. the function jensen_shannon_with_AL from jensen_shannon_augmentation_AL to calculate and return the general embeddings the four most similar domains. We use the proposed Active learning algorithm with Uncertainty Sampling and Elliptic Envelope with our proposed classifier to query the most informative instances. After trials we have concluded that by using only 38% of the initial labeled data we achieve highly-accurate results. Then, We run the script: 
+Then we will use the general and specific embeddings that where created previous as inputs of the classifier. The domain specific embeddings are augmented by multiplying them three times and then we select the general sentence embeddings from four most similar domains by using the Jensen-Shanon distance. the function __jensen_shannon_with_AL__ from __jensen_shannon_augmentation_AL__ to calculate and return the general embeddings the four most similar domains. Firstly  We use the proposed Active learning algorithm with Uncertainty Sampling and Elliptic Envelope with our proposed classifier to query the most informative instances. After trials we have concluded that by using only 38% of the initial labeled data we achieve highly-accurate results. Then, We run the script: 
 
-python al-module.py SPEC_INDEX_VALUE PAR0_VALUE
+__python al-module.py SPEC_INDEX_VALUE PAR0_VALUE__
 
 where SPEC_INDEX_VALUE is for the domain number (it is between 0 and 15) and PARO_VALUE is the number of labeled instances (1600). So we will run 
 
-python python al-module.py 3 1600   
+__python al-module.py 3 1600__   
 
 for domain 3 and 1600 labeled instances for the active learning. However, if we want to get the results for all domain we do not run python python al-module.py 3 1600 but we only run:
 
-Test_Case.py
+__python Test_Case.py__
 
 to get the accuracy results for the 16 domains.
 
 
-**Classification without AL**  
 
-In a similar way as above, we train our classifier withhout the presence of Active Learning. Again, we find the general embeddings of the four most similar domains to the target domain by calling the function jensen_shannon from jensen_shannon_augmentation when we run the script:
 
-python classifier_without_al.py 
-
-Then we run 
 
