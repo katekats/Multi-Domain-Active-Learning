@@ -104,14 +104,23 @@ def sort_array(array_to_sort, array_ref):
     return indeces_sorted
 
 
-def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, spec_index):   
+def filter_and_sort_data(df_dist, labels_general, data_general, labels_total, spec_index): 
+    # Compute Jensen-Shannon distances between the spec_index distribution and all others  
     js_d = [distance.jensenshannon(np.array(df_dist.iloc[spec_index]), row) for _, row in df_dist.iterrows()]
-    most_sim_dist = sorted(range(len(js_d)), key=lambda i: js_d[i], reverse=True)[-5:]
+    
+    # Get indices of the 5 most similar distributions based on JS distances
+    most_sim_dist = sorted(range(len(js_d)), key=lambda i: js_d[i], reverse=True)[-4:]
+    # Remove the original spec_index as we are interested in the most similar ones excluding itself
     most_sim_dist.remove(spec_index)
+
+    # Filter the data and labels to keep only those corresponding to the most similar distributions
     indices_to_keep = [i for i, value in enumerate(labels_general[1]) if int(value) in most_sim_dist]
     labels_general, data_general = labels_general[:, indices_to_keep], data_general[indices_to_keep]
+    
+    # Sort the general data based on labels_total_train_val for consistency
     ind_train = sort_array(labels_train, labels_total_train_val)
     data_general, labels_general = data_general[ind], labels_general[:, ind]
+    # Partition the general data into train, validation, and test sets
     X_train_gen, X_val_gen, X_test_gen = data_general[:5000], data_general[5000:6000], data_general[6000:7700]
     y_train_gen, y_val_gen, y_test_gen = labels_general[:5000], labels_general[5000:6000], labels_general[6000:7700]
     return X_train_gen, X_val_gen, X_test_gen, y_train_gen, y_val_gen, y_test_gen
