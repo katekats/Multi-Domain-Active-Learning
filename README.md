@@ -27,9 +27,10 @@ The order we should run our scripts is the following:
 * python classifier_without_al.py SPEC_INDEX_VALUE (if we want the results for a single domain) __OR__ python Test_Case_without_AL.py (if we want to get the results for all domains)
 * python al-module.py SPEC_INDEX_VALUE PAR0_VALUE (if we want the results for a single domain) __OR__ python Test_Case.py (if we want to get the results for all domains)
   
-**Loading the data**
+## Loading the data
 We use the __data_loader.ipynb__ to load and clean the data.
-**Preprocessing the Data**
+
+## Preprocessing the Data
 In the script __preprocessing-withoutTFIDF.ipynb__ we proceed with preprocessing the data by giving a specific number to each domain:
 {'MR': 0,
  'apparel': 1,
@@ -50,7 +51,7 @@ In the script __preprocessing-withoutTFIDF.ipynb__ we proceed with preprocessing
 
  Based on the histogram, we decide on the sequence length and vocabulary size, and we use pre-trained FastText embeddings for vectorizing the reviews to be suitable inputs for the autoencoder.
 
-**Autoencoder for general and domain-specific sentence embeddings**  
+## **Autoencoder for general and domain-specific sentence embeddings**  
 
 Next, we will generate the general and sentence embeddings using a BiLSTM-based autoencoder with Self-Attention. We will run the script: autoencoder_gen_spec_embeddings.py, with the embedding type GENERAL to calculate the general embeddings:
 
@@ -64,7 +65,7 @@ __python autoencoder_gen_spec_embeddings.py --embedding-type SPECIFIC__
 
 We proceed with augmenting the domain-specific embedding data by multiplying them three times and sort them with the general embeddings based on the same sentiment (positive or negative). Then, we split the data into 70-10-20 for train-validation-test sets (as in the state-of-the-art).
 
-**Classification without AL**  
+## **Classification without AL**  
 Then we will use the general and specific embeddings created previously as classifier inputs. The domain-specific embeddings are augmented by multiplying them three times, and then we select the general sentence embeddings from the four most similar domains using the Jensen-Shanon distance. We run the script:
 __python jensen jensen_shannon_augmentation.py SPEC_INDEX_VALUE__
 
@@ -80,7 +81,7 @@ Where SPEC_INDEX_VALUE is for the domain number (it is between 0 and 15). Howeve
 __python Test_Case_without_AL.py__
 
 
-**Classification with AL**  
+## **Classification with AL**  
 Then we will use the general and specific embeddings created previously as classifier inputs. The domain-specific embeddings are augmented by multiplying them three times, and then we select the general sentence embeddings from the four most similar domains using the Jensen-Shanon distance. The function __jensen_shannon_with_AL__ from __jensen_shannon_augmentation_AL__ to calculate and return the general embeddings of the four most similar domains. Firstly  We use the proposed Active learning algorithm with Uncertainty Sampling and Elliptic Envelope with our proposed classifier to query the most informative instances. After trials, we concluded that by using only 38% of the initial labeled data, we achieved highly accurate results. Then, We run the script: 
 
 __python al-module.py SPEC_INDEX_VALUE PAR0_VALUE__
